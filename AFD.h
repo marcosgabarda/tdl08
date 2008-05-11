@@ -122,6 +122,11 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
 
   std::set<std::set<int> > calculaEstadosDR() const;
   
+  /*
+   * Calcula el automata unversal.
+   */
+  AFD automataUniversal();
+
  private:
 	
   std::string m_strName;
