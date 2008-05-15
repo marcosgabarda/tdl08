@@ -249,7 +249,7 @@ std::set<char> GIC::simbolosAnulables() const {
     for (it = lSimbolos.begin(); it != lSimbolos.end(); it++) {
       std::vector<std::string> vProd = producciones[*it];
       bool bAnul = false;
-      int nProd = static_cast<int>(vProd);
+      int nProd = static_cast<int>(vProd.size());
       for (int i = 0; i < nProd; i++) {
 	std::string prod = vProd[i];
 	int s, nprod = static_cast<int>(prod.size());
@@ -295,9 +295,140 @@ GIC GIC::eliminacionProcuccionesVacias() const {
 }
 
 std::set<char> GIC::produccionesUnitarias(char A) const {
+
+  std::map<char,std::vector<std::string> > producciones(m_producciones);
+  std::set<char> noTerminales(m_noTerminales);
+
+  std::set<char> alcanzablesUnitarias;
+  std::set<char> lAux;
+
+  alcanzablesUnitarias.insert(A);
+  lAux.insert(A);
+
+  do {
+        
+    std::set<char> lAux2;
+    for (std::set<char>::iterator itAux = lAux.begin(); 
+	 itAux != lAux.end(); 
+	 itAux++) {
+      char B = *itAux;
+      for (std::set<char>::iterator itNoTerm = noTerminales.begin();
+	   itNoTerm != noTerminales.end();
+	   itNoTerm++) {
+	char C = *itNoTerm;
+	std::vector<std::string> vProd = producciones[B];
+	int nProd = static_cast<int> (vProd.size());
+	for (int i = 0; i < nProd; i++) {
+	  std::string prod = vProd[i];
+	  if (prod.size() == 1 && prod[0] == C) { // Si se cumple, se tiene que añadir B a lAux.
+	    lAux2.insert(B);
+	  }
+	} // for i	
+      } // for itNoTerm      
+    } // for itAux
+
+
+    // aux1 = aux2 - C(A)
+    std::set<char> tmp;
+    for (std::set<char>::iterator it = lAux2.begin(); 
+	 it != lAux2.end();
+	 it++) {
+      if (alcanzablesUnitarias.find(*it) != alcanzablesUnitarias.end())
+	tmp.insert(*it);
+    }
+    lAux = tmp;
+
+    // C(A) = C(A) U aux1
+    for (std::set<char>::iterator it = lAux.begin(); 
+	 it != lAux.end();
+	 it++) {
+      alcanzablesUnitarias.insert(*it);
+    }
+
+  } while (lAux.size() != 0);
+  
+  return alcanzablesUnitarias;
+}
+
+std::set<std::string> GIC::producciones_varios_auxiliares (char A) const {
+  
+  std::map<char,std::vector<std::string> > producciones(m_producciones);
+  std::set<char> terminales(m_terminales);
+
+  std::vector<std::string> vProd = producciones[A];
+  std::set<std::string> lProdNuevas;
+  
+  int nProd = static_cast<int> (vProd.size());
+  for(int i = 0; i < nProd; i++) {    
+    std::string prod = vProd[i];
+    if (prod.size() > 1 || (prod.size() == 1 && terminales.find(prod[0]) != terminales.end())) // Solo los no terminales.
+      lProdNuevas.insert(prod);
+  }
+  
+  return lProdNuevas;
+  
+}
+
+std::set<std::string> GIC::union_no_unitarias (char A, std::set<char> CNoTerm) const {  
+
+  std::set<std::string> lAux;
+
+  for (std::set<char>::iterator it = CNoTerm.begin();
+       it != CNoTerm.end();
+       it++) {
+    char B = *it;
+    std::set<std::string> tmp = producciones_varios_auxiliares (B);
+    for (std::set<std::string>::iterator itTmp = tmp.begin();
+	 itTmp != tmp.end();
+	 itTmp++) {
+      lAux.insert(*itTmp);
+    }    
+  }
+
+  return lAux;
+
 }
 
 GIC GIC::eliminacionProduccionesUnitarioas() const {
+
+  std::map<char,std::vector<std::string> > produccionesOrig(m_producciones);
+  std::set<char> noTerminales(m_noTerminales);
+  std::set<char> terminales(m_terminales);
+  char simboloInicial = m_simboloInicial; 
+
+  std::map<char,std::vector<std::string> > producciones;
+
+  // Para todo simbolo no terminal
+  for (std::set<char>::iterator it = noTerminales.begin();
+       it != noTerminales.end();
+       it++) {
+    char A = *it;
+    std::set<char> CNoTerm = produccionesUnitarias(A);
+
+    std::set<std::string> tmp = union_no_unitarias ( A, CNoTerm);
+    std::vector<std::string> vTmp;
+    for (std::set<std::string>::iterator itTmp = tmp.begin();
+	 itTmp != tmp.end();
+	 itTmp++) {
+      vTmp.push_back(*itTmp);
+    }
+    producciones[A] = vTmp;
+
+  }
+
+  return GIC(noTerminales, terminales, simboloInicial, producciones);
+
+}
+
+GIC GIC::gramaticaSimplificada() const {
+
+  std::map<char,std::vector<std::string> > producciones(m_producciones);
+  std::set<char> noTerminales(m_noTerminales);
+  std::set<char> terminales(m_terminales);
+  char simboloInicial = m_simboloInicial; 
+
+  return GIC(noTerminales, terminales, simboloInicial, producciones);
+
 }
 
 GIC GIC::formaNormalChomsky() const {

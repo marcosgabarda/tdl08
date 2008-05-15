@@ -21,6 +21,9 @@ private:
 
   static char nuevo_simbolo_auxiliar(const std::set<char> &noTerminales);
 
+  std::set<std::string> producciones_varios_auxiliares (char A) const;
+  std::set<std::string> union_no_unitarias (char A, std::set<char> CNoTerm) const;
+
 public:
 
   GIC(std::set<char> noTerminales,
@@ -40,6 +43,8 @@ public:
 
   std::set<char> produccionesUnitarias(char A) const;
   GIC eliminacionProduccionesUnitarioas() const;
+
+  GIC gramaticaSimplificada() const;
 
   GIC formaNormalChomsky() const;
 };
