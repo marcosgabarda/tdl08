@@ -196,14 +196,108 @@ std::set<char> GIC::simbolosAlcanzables() const {
 }
 
 GIC GIC::eliminacionNoAlcanzables() const {
-  std::map<char,std::vector<std::string> > produccionesOriginales(m_producciones);
-  std::map<char,std::vector<std::string> > producciones;
-  std::set<char> noTerminales;
-  std::set<char> terminales(m_terminales);
-  std::set<char> generativos = simbolosGenerativos();
+
+  std::map<char,std::vector<std::string> > produccionesOrig(m_producciones);
+  std::set<char> noTerminalesOrig(m_noTerminales);
+  std::set<char> terminalesOrig(m_terminales);
   char simboloInicial = m_simboloInicial; 
 
+  std::map<char,std::vector<std::string> > producciones;
+  std::set<char> noTerminales;
+  std::set<char> terminales;
+
+  std::set<char> alcanzables = simbolosAlcanzables();
+
+  // N1 = alc INT N
+  // T1 = alc INT T
+  for (std::set<char>::iterator it = alcanzables.begin(); 
+       it != alcanzables.end();
+       it++) {
+    if (noTerminalesOrig.find(*it) != noTerminalesOrig.end())
+      noTerminales.insert(*it);
+    if (terminalesOrig.find(*it) != terminalesOrig.end())
+      terminales.insert(*it);
+
+  }
+
+  for (std::set<char>::iterator it = noTerminales.begin(); 
+       it != noTerminales.end();
+       it++) {
+    producciones[*it] = produccionesOrig[*it];
+  }
+  
+
   return GIC(noTerminales, terminales, simboloInicial, producciones);
+}
+
+std::set<char> GIC::simbolosAnulables() const {
+
+  std::map<char,std::vector<std::string> > producciones(m_producciones);
+  std::set<char> noTerminales(m_noTerminales);
+
+  std::set<char> lAnulables;
+  std::set<char> lAux;
+
+  do {
+
+    std::set<char> lSimbolos;
+    std::set<char>::iterator it;
+    for (it = noTerminales.begin(); it != noTerminales.end(); it++) {
+      if (lAnulables.find(*it) == lAnulables.end())
+	lSimbolos.insert(*it);
+    }
+    for (it = lSimbolos.begin(); it != lSimbolos.end(); it++) {
+      std::vector<std::string> vProd = producciones[*it];
+      bool bAnul = false;
+      int nProd = static_cast<int>(vProd);
+      for (int i = 0; i < nProd; i++) {
+	std::string prod = vProd[i];
+	int s, nprod = static_cast<int>(prod.size());
+	for (s = 0; s < nprod; s++) {
+	  if (lAnulables.find(prod[s]) == lAnulables.end())
+	    break;
+	}
+	if (s == nprod) { // Hay una produccion que es anulable.
+	  bAnul = true;
+	  break;
+	}
+      }
+      if (bAnul)
+	lAux.insert(*it);
+    }
+
+    // Anulables = Anulables U aux
+    for (it = lAux.begin(); it != lAux.end(); it++) {
+      lAnulables.insert(*it);
+    }
+
+  } while (lAux.size() != 0);
+
+}
+
+GIC GIC::eliminacionProcuccionesVacias() const {
+
+  std::map<char,std::vector<std::string> > produccionesOrig(m_producciones);
+  std::set<char> noTerminales(m_noTerminales);
+  std::set<char> terminales(m_terminales);
+  char simboloInicial = m_simboloInicial; 
+
+  std::map<char,std::vector<std::string> > producciones;
+  
+  std::set<char> anulables = simbolosAnulables();
+
+  // TODO: producciones = {A -> x: Existe(A -> z) que pertenece a P, x pertenece a f(z)} ... ¿f(z)?
+  // Imagino que f(z) sera la version sin simbolos anulables...
+  // ¿Las producciones que resultan de elimimar los simbolos anulables?
+
+  return GIC(noTerminales, terminales, simboloInicial, producciones);
+
+}
+
+std::set<char> GIC::produccionesUnitarias(char A) const {
+}
+
+GIC GIC::eliminacionProduccionesUnitarioas() const {
 }
 
 GIC GIC::formaNormalChomsky() const {
