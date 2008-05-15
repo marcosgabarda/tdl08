@@ -31,8 +31,16 @@ public:
 
   std::set<char> simbolosGenerativos() const;
   GIC eliminacionNoGenerativos() const;
+
   std::set<char> simbolosAlcanzables() const;
   GIC eliminacionNoAlcanzables() const;
+
+  std::set<char> simbolosAnulables() const;
+  GIC eliminacionProcuccionesVacias() const;
+
+  std::set<char> produccionesUnitarias(char A) const;
+  GIC eliminacionProduccionesUnitarioas() const;
+
   GIC formaNormalChomsky() const;
 };
 
