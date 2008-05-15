@@ -89,7 +89,7 @@ GIC GIC::eliminacionNoGenerativos() const {
   std::set<char> noTerminales;
   std::set<char> terminales(m_terminales);
   std::set<char> generativos = simbolosGenerativos();
-  char simboloInicial = m_simboloInicial;
+  char simboloInicial = m_simboloInicial; 
 
   noTerminales  = generativos;
   noTerminales.insert(simboloInicial);
@@ -119,6 +119,91 @@ GIC GIC::eliminacionNoGenerativos() const {
   
   return GIC(noTerminales, terminales, simboloInicial, producciones);
 
+}
+
+std::set<char> GIC::simbolosAlcanzables() const {
+
+  std::map<char,std::vector<std::string> > producciones(m_producciones);
+  std::set<char> terminales(m_terminales);
+  char simboloInicial = m_simboloInicial; 
+
+  std::set<char> lAlcanzables;
+  std::set<char> lAux;
+  std::set<char> lSimbolos (m_noTerminales);
+
+  for(std::set<char>::iterator it = terminales.begin();
+      it != terminales.end();
+      it++) {
+    lSimbolos.insert(*it);
+  }
+
+  lAlcanzables.insert(simboloInicial);
+  lAux.insert(simboloInicial);
+
+  do {
+    
+    std::set<char> lAux2;
+    for (std::set<char>::iterator itSimbolos = lSimbolos.begin(); 
+	 itSimbolos != lSimbolos.end();
+	 itSimbolos++) {
+      char a = *itSimbolos;
+      bool bOk = false;
+      for (std::set<char>::iterator itAux = lAux.begin(); 
+	   itAux != lAux.end();
+	   itAux++) {
+	std::vector<std::string> vProd = producciones[*itAux];
+	int nProd = static_cast<int>(vProd.size());
+	for (int i = 0; i < nProd; i++) {
+	  std::string prod = vProd[i];
+	  int nprod = static_cast<int>(prod.size());
+	  for (int j = 0; j < nprod; j++) {
+	    if (prod[j] == a) { // Entonces tiene que introducirse en simbolo en lAux2
+	      bOk = true;
+	      break;
+	    } // if
+	  } //for j
+	  if (bOk) break;
+	} //for i
+	if (bOk) break;
+      } // for itAux
+       if (bOk) 
+	 lAux2.insert(a);
+    } // for itSimbolos
+
+    // aux1 = aux2 - (alc U T)
+    std::set<char> tmp;
+    for (std::set<char>::iterator itAux2 = lAux2.begin(); 
+	 itAux2 != lAux2.end();
+	 itAux2++) {
+      char a = *itAux2;
+      if (lAlcanzables.find(a) == lAlcanzables.end() && terminales.find(a) == terminales.end()) {
+	tmp.insert(a);
+      }
+    }
+    lAux = tmp;
+
+
+    // alc = alc U aux2
+    for (std::set<char>::iterator itAux2 = lAux2.begin(); 
+	 itAux2 != lAux2.end();
+	 itAux2++) {
+      lAlcanzables.insert(*itAux2); 
+    }
+  } while (lAux.size() != 0);
+  
+  return lAlcanzables;
+
+}
+
+GIC GIC::eliminacionNoAlcanzables() const {
+  std::map<char,std::vector<std::string> > produccionesOriginales(m_producciones);
+  std::map<char,std::vector<std::string> > producciones;
+  std::set<char> noTerminales;
+  std::set<char> terminales(m_terminales);
+  std::set<char> generativos = simbolosGenerativos();
+  char simboloInicial = m_simboloInicial; 
+
+  return GIC(noTerminales, terminales, simboloInicial, producciones);
 }
 
 GIC GIC::formaNormalChomsky() const {
