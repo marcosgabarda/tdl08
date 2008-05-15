@@ -29,7 +29,8 @@ public:
       std::map<char,std::vector<std::string> > producciones);
   
 
-  std::set<char> simbolosGenerativos();
+  std::set<char> simbolosGenerativos() const;
+  GIC eliminacionNoGenerativos() const;
   GIC formaNormalChomsky() const;
 };
 

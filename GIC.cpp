@@ -14,10 +14,13 @@ GIC::GIC(std::set<char> noTerminales,
 /**
  * Calcula los simbolos generativos de una gramática incontextual.
  */
-std::set<char> GIC::simbolosGenerativos() {
+std::set<char> GIC::simbolosGenerativos() const {
 
+  std::set<char> terminales ( m_terminales );
+  std::map<char,std::vector<std::string> > producciones ( m_producciones );
+  std::set<char> noTerminales ( m_noTerminales );
   std::set<char> lGeneradores;
-  std::set<char> lGeneradoresAux = m_terminales;
+  std::set<char> lGeneradoresAux ( m_terminales );
   std::set<char>::iterator it;
 
   do {
@@ -27,13 +30,13 @@ std::set<char> GIC::simbolosGenerativos() {
      * std::set<char> m_noTerminales;
      * std::map<char,std::vector<std::string> > m_producciones;
      */
-    for (it = m_noTerminales.begin(); it != m_noTerminales.end(); it++) {
+    for (it = noTerminales.begin(); it != noTerminales.end(); it++) {
       char cNoTerminal = *it;
-      std::vector<std::string> vProd = m_producciones[cNoTerminal];
+      std::vector<std::string> vProd = producciones[cNoTerminal];
       int nvProd = static_cast<int>(vProd.size());
       bool bTerGen = false;
       for (int i = 0; i < nvProd; i++) {
-	std::string sProd = vProd[i];
+	std::string sProd ( vProd[i] );
 	int nsProd = static_cast<int>(sProd.size());
 	int s;
 	for (s = 0; s < nsProd; s++) {
@@ -69,7 +72,7 @@ std::set<char> GIC::simbolosGenerativos() {
   // gen = gen2 - T
   std::set<char> tmp;
   for (it = lGeneradoresAux.begin(); it != lGeneradoresAux.end(); it++) {
-    if (m_terminales.find(*it) == m_terminales.end()) {
+    if (terminales.find(*it) == terminales.end()) {
       lGeneradores.insert(*it);      
     }
   }
@@ -77,6 +80,45 @@ std::set<char> GIC::simbolosGenerativos() {
   
   return lGeneradores; 
   
+}
+
+GIC GIC::eliminacionNoGenerativos() const {
+  
+  std::map<char,std::vector<std::string> > produccionesOriginales(m_producciones);
+  std::map<char,std::vector<std::string> > producciones;
+  std::set<char> noTerminales;
+  std::set<char> terminales(m_terminales);
+  std::set<char> generativos = simbolosGenerativos();
+  char simboloInicial = m_simboloInicial;
+
+  noTerminales  = generativos;
+  noTerminales.insert(simboloInicial);
+
+  std::set<char>::iterator it;
+  for (it = generativos.begin(); it != generativos.end(); it++) {
+    std::vector<std::string> vProd = produccionesOriginales[*it];
+    std::vector<std::string> vProdNuevas;
+    int nProd = static_cast<int>(vProd.size());
+    for (int i = 0; i < nProd; i++) {
+      std::string prod = vProd[i];
+      /**
+       * Coprobar que x pertenece a (gen U T)*, y si es asi, se añade la produccion.
+       */
+      int nprod = static_cast<int>(prod.size());
+      int s;
+      for (s = 0; s < nprod; s++) {
+	if (terminales.find(prod[s]) == terminales.end() && generativos.find(prod[s]) == generativos.end() )
+	  break;
+      }
+      if (s == nprod) // Se añade a las producciones
+	vProdNuevas.push_back(prod);
+    }
+    if (vProdNuevas.size() != 0) 
+      producciones[*it] = vProdNuevas;
+  }
+  
+  return GIC(noTerminales, terminales, simboloInicial, producciones);
+
 }
 
 GIC GIC::formaNormalChomsky() const {
