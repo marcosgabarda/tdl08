@@ -29,7 +29,7 @@ public:
       std::map<char,std::vector<std::string> > producciones);
   
 
-  std::set<char> simbolosGenerativos() const;
+  std::set<char> simbolosGenerativos();
   GIC formaNormalChomsky() const;
 };
 

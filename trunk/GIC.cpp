@@ -1,4 +1,5 @@
 #include "GIC.h"
+#include <iostream>
 
 GIC::GIC(std::set<char> noTerminales,
          std::set<char> terminales,
@@ -13,35 +14,68 @@ GIC::GIC(std::set<char> noTerminales,
 /**
  * Calcula los simbolos generativos de una gramática incontextual.
  */
-std::set<char> GIC::simbolosGenerativos() const {
+std::set<char> GIC::simbolosGenerativos() {
 
-  std::set<char> gen;
-  std::set<char> gen2 = m_terminales;
+  std::set<char> lGeneradores;
+  std::set<char> lGeneradoresAux = m_terminales;
+  std::set<char>::iterator it;
 
   do {
   
     /**
-     * Gen <= No terminales tales que si A -> x, entonces x pertence a Gen2
+     * lGeneradores <= No terminales tales que si A -> x, entonces x pertence a lGeneradoresAux
      * std::set<char> m_noTerminales;
      * std::map<char,std::vector<std::string> > m_producciones;
      */
-    std::set<char>::iterator itNoTerminales;
-    for (itNoTerminales = m_noTerminales.begin(); itNoTerminales != itNoTerminales.end(); itNoTerminales++) {
-      vProd = m_producciones[*itNoTerminales];
-      int nProd = static_cast<int>(vProd.size());
-      int i = 0;
-      for (i = 0; i < nProd; i++) {
-	if (gen2.find(vProd[i]) == gen2.end()) // Si hay un simbolo que no sea generativo, no se incluye.
-	  break;
+    for (it = m_noTerminales.begin(); it != m_noTerminales.end(); it++) {
+      char cNoTerminal = *it;
+      std::vector<std::string> vProd = m_producciones[cNoTerminal];
+      int nvProd = static_cast<int>(vProd.size());
+      bool bTerGen = false;
+      for (int i = 0; i < nvProd; i++) {
+	std::string sProd = vProd[i];
+	int nsProd = static_cast<int>(sProd.size());
+	int s;
+	for (s = 0; s < nsProd; s++) {
+	  if (lGeneradoresAux.find(sProd[s]) == lGeneradoresAux.end()) 
+	    break;
+	}
+	if (s == nsProd) // La produccion i es pertenece a lGeneradoresAux*
+	  bTerGen = true;
+	  
       }
-      if ( i == nProd) { // Se ha saildo del for por terminar la cadena.
-	gen.insert(*itNoTerminales);
+      if (bTerGen) { // El no terminal tiene una produccion al menos que esta en lGeneradoresAux*
+	lGeneradores.insert(cNoTerminal);	
       }
     }
     
-  } while (gen.size() == 0)
+    // gen = gen - gen2
+    std::set<char> tmp;
+    for(it = lGeneradores.begin(); it != lGeneradores.end(); it++) {
+      if (lGeneradoresAux.find(*it) == lGeneradoresAux.end()) {
+	tmp.insert(*it);
+      }
+    }
+    lGeneradores = tmp;
+    
+    // gen2 = gen U gen2
+    for (it = lGeneradores.begin(); it != lGeneradores.end(); it++) {
+      lGeneradoresAux.insert(*it);
+    }
+
+    
+  } while (lGeneradores.size() != 0);
   
-  return gen; 
+  // gen = gen2 - T
+  std::set<char> tmp;
+  for (it = lGeneradoresAux.begin(); it != lGeneradoresAux.end(); it++) {
+    if (m_terminales.find(*it) == m_terminales.end()) {
+      lGeneradores.insert(*it);      
+    }
+  }
+  
+  
+  return lGeneradores; 
   
 }
 
