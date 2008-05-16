@@ -24,6 +24,8 @@ private:
   std::set<std::string> producciones_varios_auxiliares (char A) const;
   std::set<std::string> union_no_unitarias (char A, std::set<char> CNoTerm) const;
 
+  std::set<std::string> sustitucion (std::string z, std::set<char> Anulables) const;
+
 public:
 
   GIC(std::set<char> noTerminales,
@@ -47,6 +49,9 @@ public:
   GIC gramaticaSimplificada() const;
 
   GIC formaNormalChomsky() const;
+
+  bool accepts(const std::string& strCadena) const;
+
 };
 
 #endif /*GIC_H_*/
