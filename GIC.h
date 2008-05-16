@@ -8,6 +8,8 @@
 
 #define WINDOWS
 
+std::set<std::string> concatena(std::set<std::string> A, std::set<std::string> B);
+
 /*
  * Clase que implementa una Gramática Incontextual. 
  */

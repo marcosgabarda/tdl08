@@ -52,6 +52,23 @@ int main() {
   for (it = sg.begin(); it != sg.end(); it++) {
     cout << *it << endl;
   }
+
+  cout << "### Concatenacion ###" << endl;
+
+  set<string> A;
+  A.insert(string("Aa"));
+  A.insert(string("a"));
+  A.insert(string("AaA"));
+  A.insert(string("aA"));
+  set<string> B;
+  B.insert(string("B"));
+
+  set<string> res = concatena (A, B);
+  set<string>::iterator it2;
+  for (it2 = res.begin(); it2 != res.end(); it2++) {
+    cout << *it2 << endl;
+  }
+
   
   return 0;
   

@@ -276,16 +276,16 @@ std::set<char> GIC::simbolosAnulables() const {
 }
 
 std::set<std::string> concatena(std::set<std::string> A, std::set<std::string> B) {
-  std::set<char> Resultado;
-  for (std::set<char>::iterator it_i = A.begin();
+  std::set<std::string> Resultado;
+  for (std::set<std::string>::iterator it_i = A.begin();
        it_i != A.end();
        it_i++) {
-    for (std::set<char>::iterator it_j = B.begin();
+    for (std::set<std::string>::iterator it_j = B.begin();
        it_j != B.end();
        it_j++) {
       std::string x;
-      x.push_back(*it_i)
-      x.push_back(*it_j);
+      x.append(*it_i);
+      x.append(*it_j);
       Resultado.insert(x);
     }
   }
@@ -305,19 +305,63 @@ std::set<std::string> GIC::sustitucion (std::string z, std::set<char> Anulables)
   }
 
   std::vector<std::set<char> > vAux;
-  int lenZ = static_cast<int>(z);
+  int lenZ = static_cast<int>(z.size());
   for (int i = 0; i < lenZ; i++) {
     std::set<char> tmp;
     char x = z[i];
     tmp.insert(x);
     if (Anulables.find(x) != Anulables.end()) {
-      tmp.insert('');
+      tmp.insert('\0');
     }
     vAux.push_back(tmp);
   }
   
-  int n = static_cast<int>(vAux);
-  for
+  std::set<std::string> Resultado;
+
+  std::set<std::string> A;
+  std::set<std::string> B;
+  
+  std::set<char> Atmp= vAux[0];
+  std::set<char> Btmp= vAux[1];
+  
+  for (std::set<char>::iterator it = Atmp.begin();
+       it != Atmp.end();
+       it++) {
+    std::string s;
+    if (*it == '\0') s.append("");
+    else s.push_back(*it);
+    A.insert(s);
+  }
+  
+  for (std::set<char>::iterator it = Btmp.begin();
+       it != Btmp.end();
+       it++) {
+    std::string s;
+    if (*it == '\0') s.append("");
+    else s.push_back(*it);
+    B.insert(s);
+  }
+
+  Resultado = concatena(A, B);
+
+  int n = static_cast<int>(vAux.size());
+  for (int i = 2; i < n; i++) {
+    std::set<std::string> C;
+    std::set<char> Ctmp= vAux[i];
+    for (std::set<char>::iterator it = Ctmp.begin();
+	 it != Ctmp.end();
+	 it++) {
+      std::string s;
+      if (*it == '\0') s.append("");
+      else s.push_back(*it);
+      C.insert(s);
+    }
+    Resultado = concatena(Resultado, C);  
+  }
+
+  Resultado.erase(std::string(""));
+  
+  return Resultado;
 
 }
 
@@ -332,10 +376,32 @@ GIC GIC::eliminacionProcuccionesVacias() const {
   
   std::set<char> anulables = simbolosAnulables();
 
-  // TODO: producciones = {A -> x: Existe(A -> z) que pertenece a P, x pertenece a f(z)} ... ¿f(z)?
-  // Imagino que f(z) sera la version sin simbolos anulables...
-  // ¿Las producciones que resultan de elimimar los simbolos anulables?
+  // producciones = {A -> x: Existe(A -> z) que pertenece a P, x pertenece a f(z)} 
+  std::set<char>::iterator it;
+  for (it = noTerminales.begin(); it != noTerminales.end(); it++) {
+    char A = *it;
+    std::vector<std::string> vProd = produccionesOrig[A];
+    std::vector<std::string> vProdNuevas;
+    std::set<std::string> nuevasProd;
+    int nProd = static_cast<int> (vProd.size());
+    for (int i = 0; i < nProd; i++) {
+      std::string prod = vProd[i];
+      std::set<std::string> tmp = sustitucion(prod, anulables);
+      for (std::set<std::string>::iterator itTmp = tmp.begin();
+	   itTmp != tmp.end();
+	   itTmp++) {
+	nuevasProd.insert(*itTmp);
+      }
+    }
+    for (std::set<std::string>::iterator itTmp = nuevasProd.begin();
+	 itTmp != nuevasProd.end();
+	 itTmp++) {
+      vProdNuevas.push_back(*itTmp);
+    }
 
+    producciones[A] = vProdNuevas;
+  }
+  
   return GIC(noTerminales, terminales, simboloInicial, producciones);
 
 }
