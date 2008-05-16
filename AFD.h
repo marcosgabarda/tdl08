@@ -119,8 +119,6 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
 
   std::string getName() const { return m_strName; };
   void setName(const std::string& strName) { m_strName = strName; }
-
-  std::set<std::set<int> > calculaEstadosDR() const;
   
   /*
    * Calcula el automata unversal.
@@ -175,6 +173,8 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
    */
   bool hayEstadosNoAlcanzables() const;
  
+  std::set<std::set<int> > calculaEstadosDR() const;
+
   /*
    * Funciones auxiliares para la minimizacion
    */

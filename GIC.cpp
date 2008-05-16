@@ -275,6 +275,52 @@ std::set<char> GIC::simbolosAnulables() const {
 
 }
 
+std::set<std::string> concatena(std::set<std::string> A, std::set<std::string> B) {
+  std::set<char> Resultado;
+  for (std::set<char>::iterator it_i = A.begin();
+       it_i != A.end();
+       it_i++) {
+    for (std::set<char>::iterator it_j = B.begin();
+       it_j != B.end();
+       it_j++) {
+      std::string x;
+      x.push_back(*it_i)
+      x.push_back(*it_j);
+      Resultado.insert(x);
+    }
+  }
+
+  return Resultado;
+}
+
+std::set<std::string> GIC::sustitucion (std::string z, std::set<char> Anulables) const {
+
+  std::set<char> lSimbolos (m_noTerminales);
+  std::set<char> terminales(m_terminales);
+
+  for(std::set<char>::iterator it = terminales.begin();
+      it != terminales.end();
+      it++) {
+    lSimbolos.insert(*it);
+  }
+
+  std::vector<std::set<char> > vAux;
+  int lenZ = static_cast<int>(z);
+  for (int i = 0; i < lenZ; i++) {
+    std::set<char> tmp;
+    char x = z[i];
+    tmp.insert(x);
+    if (Anulables.find(x) != Anulables.end()) {
+      tmp.insert('');
+    }
+    vAux.push_back(tmp);
+  }
+  
+  int n = static_cast<int>(vAux);
+  for
+
+}
+
 GIC GIC::eliminacionProcuccionesVacias() const {
 
   std::map<char,std::vector<std::string> > produccionesOrig(m_producciones);
@@ -507,4 +553,64 @@ char GIC::nuevo_simbolo_auxiliar(const std::set<char> &noTerminales)
   for(nuevo='a'; noTerminales.find(nuevo)!=noTerminales.end(); nuevo++);
 
   return nuevo;
+}
+
+bool GIC::accepts(const std::string& strCadena) const {
+  const int n = strCadena.size();
+  std::set<char>** V;
+  V = new std::set<char>*[n];
+  V--;
+  for(int i=1; i<=n; i++) {
+    V[i] = new std::set<char>[n];
+    V[i]--;
+  }
+
+  for(int i=1; i<=n; i++)
+  {
+    for(std::map<char,std::vector<std::string> >::const_iterator itProducciones = m_producciones.begin();
+        itProducciones != m_producciones.end();
+        itProducciones++)
+    {
+      for(std::vector<std::string>::const_iterator itAlternativas = itProducciones->second.begin();
+          itAlternativas != itProducciones->second.end();
+          itAlternativas++)
+      {
+        if(strCadena.at(i-1)==itAlternativas->at(0)) {
+          V[i][1].insert(itProducciones->first);
+          break;
+        }
+      } // endfor itAlternativas
+    } // endfor itProducciones
+  } //endfor i
+
+  for(int j=2; j<=n; j++)
+  {
+    for(int i=1; i<=n-j+1; i++)
+    {
+      for(int k=1; k<=j-1; k++)
+      {
+        for(std::map<char,std::vector<std::string> >::const_iterator itProducciones = m_producciones.begin();
+            itProducciones != m_producciones.end();
+            itProducciones++)
+        {
+          for(std::vector<std::string>::const_iterator itAlternativas = itProducciones->second.begin();
+              itAlternativas != itProducciones->second.end();
+              itAlternativas++)
+          {
+            if(itAlternativas->length()==2 &&
+               V[i][k].find(itAlternativas->at(0))!=V[i][k].end() &&
+               V[i+k][j-k].find(itAlternativas->at(1))!=V[i+k][j-k].end())
+            {
+              V[i][j].insert(itProducciones->first);
+              break;
+            }
+          } // endfor itAlternativas
+        } // endfor itProducciones
+      } // endfor k
+    } // endfor i
+  } // endfor j
+
+  // TODO: delete V
+
+  return (V[1][n].find(m_simboloInicial)!=V[1][n].end());
 }

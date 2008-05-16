@@ -507,7 +507,7 @@ AFD AFD::AutomataUniversal() {
    * introducen en un conjunto que elimina los elementos que estan ya repetidos
    * y donde no importa el orden.
    */
-  int nLimit = pow(static_cast<float>(nEstados),static_cast<float>(nEstados) );
+  int nLimit = static_cast<int>(pow(static_cast<float>(nEstados),static_cast<float>(nEstados) ));;
   for (int i = 0; i < nLimit; i++) {
     std::set<int> Estado;
     if (i == 0)
@@ -524,16 +524,18 @@ AFD AFD::AutomataUniversal() {
    * NOTA: No se si te tiene que tener en cuenta un vector con todo a "false".
    */
   std::vector<bool> vColIni(nEstadosDR);
-  for (int i = 0; i < nEstadosDR; i++) vColIni[i] = true;
+  for (unsigned int i = 0; i < nEstadosDR; i++) vColIni[i] = true;
 
-  std::set<int> it_k;
+  std::set<int>::iterator it_k;
   for(it_i = Intersecciones.begin(); it_i != Intersecciones.end(); it_i++) {
     std::vector<bool> vCol(nEstadosDR);
     vCol = vColIni;
     for (it_k = it_i->begin(); it_k != it_i->end(); it_k++) {
       std::vector<bool> vColNuevo(nEstadosDR);       
-      vColNuevo = Mapa[*it_k];
-      for (int i = 0; i < nEstadosDR; i++) vCol[i] = vCol[i] && vColNuevo[i];
+      std::set<int> aux;
+      aux.insert(*it_k);
+      vColNuevo = Mapa[aux];
+      for (unsigned int i = 0; i < nEstadosDR; i++) vCol[i] = vCol[i] && vColNuevo[i];
     } //for it_k
     Mapa[*it_i] = vCol;
     if (MapaInverso.find(vCol) == MapaInverso.end()) // Solo insertamos en el inverso si es nuevo el elemento.
@@ -550,7 +552,7 @@ AFD AFD::AutomataUniversal() {
   std::set<std::set<int> > EstadosFinales;
   std::map<std::vector<bool>, std::set<int> >::iterator it_z;
   for(it_z = MapaInverso.begin(); it_z != MapaInverso.end(); it_z++) {
-    EstadosFinales.insert(*it_z);
+    EstadosFinales.insert(it_z->second);
   }
 
   for(it_i = EstadosFinales.begin(); it_i != EstadosFinales.end(); it_i++) {
@@ -562,14 +564,14 @@ AFD AFD::AutomataUniversal() {
 	 * incluido en it_i. Si es asi, se introduce en la relacion de
 	 * inclusion (se añade a SubEstados).
 	 */
-	std::vecotr<bool> vColI = Mapa[*it_i];
-	std::vecotr<bool> vColJ = Mapa[*it_j];
+	std::vector<bool> vColI = Mapa[*it_i];
+	std::vector<bool> vColJ = Mapa[*it_j];
 	bool bTF = false;
 	bool bIncluido = true;
 	for (unsigned int i = 0; i < nEstadosDR; i++) {
 	  if(bTF) {
 	    // No esta incluido
-	    bIncludio = false;
+	    bIncluido = false;
 	    break;
 	  }
 	  // Seguimos mirando
@@ -591,5 +593,4 @@ AFD AFD::AutomataUniversal() {
   
   
   return;
-  
 }
