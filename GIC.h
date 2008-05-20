@@ -46,7 +46,7 @@ public:
   GIC eliminacionProcuccionesVacias() const;
 
   std::set<char> produccionesUnitarias(char A) const;
-  GIC eliminacionProduccionesUnitarioas() const;
+  GIC eliminacionProduccionesUnitarias() const;
 
   GIC gramaticaSimplificada() const;
 

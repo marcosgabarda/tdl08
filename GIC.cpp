@@ -501,7 +501,7 @@ std::set<std::string> GIC::union_no_unitarias (char A, std::set<char> CNoTerm) c
 
 }
 
-GIC GIC::eliminacionProduccionesUnitarioas() const {
+GIC GIC::eliminacionProduccionesUnitarias() const {
 
   std::map<char,std::vector<std::string> > produccionesOrig(m_producciones);
   std::set<char> noTerminales(m_noTerminales);
@@ -534,11 +534,6 @@ GIC GIC::eliminacionProduccionesUnitarioas() const {
 
 GIC GIC::gramaticaSimplificada() const {
 
-  std::map<char,std::vector<std::string> > producciones(m_producciones);
-  std::set<char> noTerminales(m_noTerminales);
-  std::set<char> terminales(m_terminales);
-  char simboloInicial = m_simboloInicial; 
-
   /**
    * 1. Eliminar las producciones vacías de G y obtener G1.
    *
@@ -550,9 +545,12 @@ GIC GIC::gramaticaSimplificada() const {
    *    simplificada.
    */
 
-  
+  GIC G1 = eliminacionProcuccionesVacias();
+  GIC G2 = G1.eliminacionProduccionesUnitarias();
+  GIC G3 = G2.eliminacionNoGenerativos();
+  GIC G4 = G3.eliminacionNoAlcanzables();
 
-  return GIC(noTerminales, terminales, simboloInicial, producciones);
+  return G4;
 
 }
 
