@@ -589,8 +589,37 @@ AFD AFD::AutomataUniversal() {
   /**
    * Construimos el automata universal.
    */
-  std::map<Par,int> lTransiciones = m_lTransiciones;
+  std::map<std::set<int>, int> TraduceEstados;
+  int nEstado = getNumEstados(); // TODO: No recuerdo si los estados empezaban en 1 o en 0.
+  for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
+       it != EstadosFinales.end();
+       it++) {
+    TraduceEstados[*it] = nEstado;
+    nEstado++;
+  }
+
+  std::map<Par,int> lTransiciones(m_lTransiciones);
+  std::map<Par,int> lTransicionesFinales(m_lTransiciones);
+  for ( std::map<Par,int>::iterator it = lTransiciones.begin();
+	it != lTransiciones.end();
+	it++ ) {
+    // Si llega a un estado, tambien tiene que llegar a todos los que estan incluidos
+    // std::map<std::set<int>, std::set<std::set<int> > > RelacionesDeInclusion;
+    std::set<int> st;
+    st.insert(it->second);
+    Par orig = it->first;
+    std::set<std::set<int> > incl = RelacionesDeInclusion[st];
+    for (std::set<std::set<int> >::iterator it2 = incl.begin();
+	 it2 != incl.end();
+	 it2++) {
+      lTransicionesFinales[orig] = TraduceEstados[*it2];
+    }
+  }
+
+  AFD AFDUniversal(getAlfabeto(), static_cast<int>(EstadosFinales.size()), lTransicionesFinales, m_vbEstadosFinales, m_iEstadoInicial);
   
-  
-  return;
+  //TODO: No recuedo si los finales eran los mismos que en el automata original, o si tambien se añaden
+  // los estados untersección en los que TODOS son finales... ¿me lo estare imaginando?
+
+  return AFDUniversal;
 }
