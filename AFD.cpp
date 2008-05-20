@@ -9,6 +9,7 @@
 #include <set>
 #include <queue>
 #include <fstream>
+#include <cmath>
 
 #ifdef WINDOWS
 #define SRANDOM srand
@@ -616,7 +617,16 @@ AFD AFD::AutomataUniversal() {
     }
   }
 
-  AFD AFDUniversal(getAlfabeto(), static_cast<int>(EstadosFinales.size()), lTransicionesFinales, m_vbEstadosFinales, m_iEstadoInicial);
+  // AFD(int cSimbolos, int cEstados, std::map<Par,int> lTransiciones, std::vector<bool> vbEstadosFinales, int iEstadoInicial):
+
+  std::list<char> lAlfabeto(this->getAlfabeto());
+  int cSimbolos =  static_cast<int>(getAlfabeto().size());
+  int cEstados = static_cast<int>(EstadosFinales.size());
+  std::vector<bool> vbEstadosFin(m_vbEstadosFinales);
+  int iEstadoInicial = m_iEstadoInicial;
+
+  AFD AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFin, iEstadoInicial);
+  AFDUniversal.setAlfabeto (lAlfabeto);
   
   //TODO: No recuedo si los finales eran los mismos que en el automata original, o si tambien se añaden
   // los estados untersección en los que TODOS son finales... ¿me lo estare imaginando?
