@@ -9,6 +9,8 @@ using namespace std;
 
 int main() {
 
+  cout << endl << endl << "### PRUEBAS DE GIC" << endl << endl;
+
   std::set<char> noTerminales;
   std::set<char> terminales;
   char simboloInicial;
@@ -70,6 +72,31 @@ int main() {
     cout << *it2 << endl;
   }
 
+
+  cout << endl << endl << "### PRUEBAS DE AFD" << endl << endl;
+
+  int nEstados = 3;
+  
+  int nEstadoInicial = 0;
+
+  set<char> Alfabeto;
+  Alfabeto.insert('a');
+  Alfabeto.insert('b');
+
+  map<cPar, int> Transiciones;
+  Transiciones[cPar(0,'a')] = 1;
+  Transiciones[cPar(1,'b')] = 2;
+  Transiciones[cPar(2,'a')] = 1;
+  Transiciones[cPar(2,'b')] = 2;
+
+  vector<bool> Finales(nEstados);
+  Finales[0] = false;
+  Finales[1] = true;
+  Finales[2] = false;
+
+  AFD Aut(Alfabeto, nEstados, Transiciones, Finales, nEstadoInicial);
+
+  AFD AutU =  Aut.AutomataUniversal();
   
   return 0;
   
