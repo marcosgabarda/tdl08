@@ -98,6 +98,8 @@ int main() {
 
   AFD AutU =  Aut.AutomataUniversal();
   
+  cout << "Numero de estados del AU: " << AutU.getNumEstados() << endl;
+
   return 0;
   
 }
