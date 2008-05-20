@@ -72,7 +72,6 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
       }
   }
 
-
  AFD(std::list<char> lSimbolos, int cEstados):
    m_cSimbolos(static_cast<int>(lSimbolos.size())),
    m_cEstados(cEstados),
@@ -123,7 +122,7 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
   /*
    * Calcula el automata unversal.
    */
-  AFD automataUniversal();
+  AFD AutomataUniversal();
 
  private:
 	
