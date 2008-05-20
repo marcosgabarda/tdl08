@@ -539,6 +539,19 @@ GIC GIC::gramaticaSimplificada() const {
   std::set<char> terminales(m_terminales);
   char simboloInicial = m_simboloInicial; 
 
+  /**
+   * 1. Eliminar las producciones vacías de G y obtener G1.
+   *
+   * 2. A partir de G1 obtener G2 que no tendrá ni producciones
+   *    unitarias ni producciones vacías.
+   *
+   * 3. A partir de G2  eliminar los símbolos inútiles de la
+   *    gramática obteniendo como resultado G3 que estará totalmente 
+   *    simplificada.
+   */
+
+  
+
   return GIC(noTerminales, terminales, simboloInicial, producciones);
 
 }
