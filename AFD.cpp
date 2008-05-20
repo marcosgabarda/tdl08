@@ -415,18 +415,20 @@ void AFD::setAlfabeto(std::list<char> lAlfabeto) {
    * que se haya definido en el constructor. Se usará para definir el alfabeto si no se ha 
    * definido en el constructor.
    */
+  std::vector<char> vcAlfabeto(static_cast<int>(m_vcAlfabeto.size()));
   m_lciAlfabeto.clear();
   m_vcAlfabeto.clear();
   std::list<char>::iterator it = lAlfabeto.begin();
   for (int i = 0; i < m_cSimbolos; i++, it++) {
     m_lciAlfabeto[*it] = i;
-    m_vcAlfabeto[i] = *it;
+    vcAlfabeto[i] = *it;
   } 
+  m_vcAlfabeto = vcAlfabeto;
 }
 
 std::list<char> AFD::getAlfabeto () const {
   std::list<char> lAlfabeto;
-  unsigned int nSize = m_vcAlfabeto.size();
+  int nSize =  static_cast<int>( m_vcAlfabeto.size() );
   for (unsigned int i = 0; i < nSize; i++) {
     lAlfabeto.push_back(m_vcAlfabeto[i]);
   }
@@ -618,15 +620,15 @@ AFD AFD::AutomataUniversal() {
   }
 
   // AFD(int cSimbolos, int cEstados, std::map<Par,int> lTransiciones, std::vector<bool> vbEstadosFinales, int iEstadoInicial):
-
+  
   std::list<char> lAlfabeto(this->getAlfabeto());
   int cSimbolos =  static_cast<int>(getAlfabeto().size());
   int cEstados = static_cast<int>(EstadosFinales.size());
   std::vector<bool> vbEstadosFin(m_vbEstadosFinales);
   int iEstadoInicial = m_iEstadoInicial;
-
+  
   AFD AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFin, iEstadoInicial);
-  AFDUniversal.setAlfabeto (lAlfabeto);
+  AFDUniversal.setAlfabeto (lAlfabeto); // TODO: Fallo de segmentacion
   
   //TODO: No recuedo si los finales eran los mismos que en el automata original, o si tambien se añaden
   // los estados untersección en los que TODOS son finales... ¿me lo estare imaginando?
