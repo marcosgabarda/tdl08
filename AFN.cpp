@@ -64,7 +64,7 @@ bool AFN::salvar(const std::string& strFileName) const {
 //      osSalida << iEstadoOrigen << " " << (m_lTransiciones.find(Par(iEstadoOrigen,iSimbolo)))->second << " " << m_vcAlfabeto[iSimbolo] << std::endl;
 
   std::set<Transicion>  lTransiciones(m_lTransiciones);
-  std::cout << "XD: "<< lTransiciones.size() << std::endl;
+  std::cout << "N. Transiciones guardadas: "<< lTransiciones.size() << std::endl;
   for(std::set<Transicion>::iterator it = lTransiciones.begin();
       it != lTransiciones.end();
       it++) {

@@ -22,11 +22,11 @@
 using namespace std;
 
 bool TodoFalse(std::vector<bool> v) {
-	int n = static_cast<int>(v.size());
-	for (int i = 0; i < n; i++) {
-		if (v[i]) return false;
-	}
-	return true;
+  int n = static_cast<int>(v.size());
+  for (int i = 0; i < n; i++) {
+    if (v[i]) return false;
+  }
+  return true;
 }
 
 bool fileExists(const std::string& fileName)
@@ -34,10 +34,10 @@ bool fileExists(const std::string& fileName)
   std::fstream fin;
   fin.open(fileName.c_str(),std::ios::in);
   if( fin.is_open() )
-  {
-    fin.close();
-    return true;
-  }
+    {
+      fin.close();
+      return true;
+    }
   fin.close();
   return false;
 }
@@ -46,17 +46,17 @@ bool AFD::salvar(const std::string& strFileName) const {
   std::ofstream osSalida;
   
   if (fileExists(strFileName))
-  {
-    // Si el archivo existe, entonces sólo se pueden añadir AFDs con nombre
-    if(m_strName.empty())
-      return false;
+    {
+      // Si el archivo existe, entonces sólo se pueden añadir AFDs con nombre
+      if(m_strName.empty())
+	return false;
 
-    osSalida.open(strFileName.c_str(),std::ios_base::app);
-  }
+      osSalida.open(strFileName.c_str(),std::ios_base::app);
+    }
   else
-  {
-    osSalida.open(strFileName.c_str());
-  }
+    {
+      osSalida.open(strFileName.c_str());
+    }
 
   if(!m_strName.empty())
     osSalida << "Name " << m_strName << std::endl;
@@ -66,16 +66,16 @@ bool AFD::salvar(const std::string& strFileName) const {
   for(int iEstado=0; iEstado<m_cEstados; iEstado++)
     osSalida << "State " << iEstado << " initial=" << (m_iEstadoInicial==iEstado) << " final=" << (m_vbEstadosFinales[iEstado] ? 1:0) << std::endl;
   
-//  for(int iEstadoOrigen=0; iEstadoOrigen<m_cEstados; iEstadoOrigen++)
-//    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
-//      osSalida << iEstadoOrigen << " " << (m_lTransiciones.find(Par(iEstadoOrigen,iSimbolo)))->second << " " << m_vcAlfabeto[iSimbolo] << std::endl;
+  //  for(int iEstadoOrigen=0; iEstadoOrigen<m_cEstados; iEstadoOrigen++)
+  //    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
+  //      osSalida << iEstadoOrigen << " " << (m_lTransiciones.find(Par(iEstadoOrigen,iSimbolo)))->second << " " << m_vcAlfabeto[iSimbolo] << std::endl;
 
   std::map<Par,int>  lTransiciones(m_lTransiciones);
-std::cout << "XD: "<< lTransiciones.size() << std::endl;
+  std::cout << "N. Transiciones guardadas: "<< lTransiciones.size() << std::endl;
   for(std::map<Par,int>::iterator it = lTransiciones.begin();
       it != lTransiciones.end();
       it++) {
-	osSalida << it->first.first << " " << it->second << " " << m_vcAlfabeto[it->first.second] << std::endl;
+    osSalida << it->first.first << " " << it->second << " " << m_vcAlfabeto[it->first.second] << std::endl;
   }
 
   osSalida.close();
@@ -101,10 +101,10 @@ bool AFD::hayEstadosNoAlcanzables() const {
     for (int i = 0; i < m_cSimbolos; i++) {
       if (m_lTransiciones.find(Par(iEstadoActual,i)) != m_lTransiciones.end()) {
         int iEstadoDestino = m_lTransiciones.find(Par(iEstadoActual,i))->second;
-	      if (lEstadosVisitados.find(iEstadoDestino) == lEstadosVisitados.end()) {
-	        lEstados.push(iEstadoDestino);
-	        lEstadosVisitados.insert(iEstadoDestino);
-	      }
+	if (lEstadosVisitados.find(iEstadoDestino) == lEstadosVisitados.end()) {
+	  lEstados.push(iEstadoDestino);
+	  lEstadosVisitados.insert(iEstadoDestino);
+	}
       }
     }    
   }
@@ -198,7 +198,7 @@ AFD AFD::minimizar() const {
         for (int iSimbolo = 0; iSimbolo < m_cSimbolos; iSimbolo++)
 	  //          lNombreParticion.merge(particion.obtenerCompartimento(m_lTransiciones.find(Par(iEstado,iSimbolo))->second));
       
-      nuevaParticion[lNombreParticion].push_back(iEstado);
+	  nuevaParticion[lNombreParticion].push_back(iEstado);
     }
 
     if(nuevaParticion == particion)
@@ -242,53 +242,53 @@ AFD AFD::minimizar2() const {
   std::set<int> noFinales;
 
   for(int iEstado=0; iEstado<m_cEstados; iEstado++)
-  {
-    P[m_vbEstadosFinales[iEstado] ? 0 : 1].insert(iEstado);
-    if(!m_vbEstadosFinales[iEstado])
-      noFinales.insert(iEstado);
-  }
+    {
+      P[m_vbEstadosFinales[iEstado] ? 0 : 1].insert(iEstado);
+      if(!m_vbEstadosFinales[iEstado])
+	noFinales.insert(iEstado);
+    }
   L.insert(noFinales);
 
   while(!L.empty())
-  {
-    std::set<int> S = *(L.begin());
-    L.erase(L.begin());
-
-    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
     {
-      P2.clear();
-      for(std::vector<std::set<int> >::iterator B = P.begin();
-          B != P.end();
-          B++)
-      {
-        std::set<int> B1, B2;
-        // Split
-        for(std::set<int>::iterator b = B->begin();
-            b != B->end();
-            b++)
-        {
-          if(S.find(m_lTransiciones.find(Par(*b,iSimbolo))->second)!=S.end())
-            B1.insert(*b);
-          else
-            B2.insert(*b);
-        } // endfor b
+      std::set<int> S = *(L.begin());
+      L.erase(L.begin());
 
-        if(!B1.empty())
-          P2.push_back(B1);
-        if(!B2.empty())
-          P2.push_back(B2);
+      for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
+	{
+	  P2.clear();
+	  for(std::vector<std::set<int> >::iterator B = P.begin();
+	      B != P.end();
+	      B++)
+	    {
+	      std::set<int> B1, B2;
+	      // Split
+	      for(std::set<int>::iterator b = B->begin();
+		  b != B->end();
+		  b++)
+		{
+		  if(S.find(m_lTransiciones.find(Par(*b,iSimbolo))->second)!=S.end())
+		    B1.insert(*b);
+		  else
+		    B2.insert(*b);
+		} // endfor b
 
-        if(!B1.empty() && !B2.empty())
-        {
-          if(B1.size() < B2.size())
-            L.insert(B1);
-          else
-            L.insert(B2);
-        }
-      } // endfor B
-      P=P2;
-    } // endfor iSimbolo
-  } //endwhile
+	      if(!B1.empty())
+		P2.push_back(B1);
+	      if(!B2.empty())
+		P2.push_back(B2);
+
+	      if(!B1.empty() && !B2.empty())
+		{
+		  if(B1.size() < B2.size())
+		    L.insert(B1);
+		  else
+		    L.insert(B2);
+		}
+	    } // endfor B
+	  P=P2;
+	} // endfor iSimbolo
+    } //endwhile
 
   // En este punto la partición está refinada al máximo
 
@@ -297,18 +297,18 @@ AFD AFD::minimizar2() const {
   for(std::vector<std::set<int> >::const_iterator itCompartimento=P.begin();
       itCompartimento != P.end();
       itCompartimento++, iPedo++)
-  {
-    for(std::set<int>::const_iterator itElem = itCompartimento->begin();
-        itElem != itCompartimento->end();
-        itElem++)
     {
-      vIndices[*itElem]=iPedo;
+      for(std::set<int>::const_iterator itElem = itCompartimento->begin();
+	  itElem != itCompartimento->end();
+	  itElem++)
+	{
+	  vIndices[*itElem]=iPedo;
+	}
     }
-  }
 
   /*
-  * Si la particion esta refinada al maximo
-  */
+   * Si la particion esta refinada al maximo
+   */
   if(P.size() == static_cast<size_t>(m_cEstados))
     return *this; // Devolvemos el AFD actual, porque es minimo
 
@@ -341,9 +341,9 @@ std::set<std::set<int> > AFD::calculaEstadosDR() const {
   for(std::map<Par,int>::const_iterator it = m_lTransiciones.begin();
       it != m_lTransiciones.end();
       it++)
-  {
-    transicionesR[Par(it->second,it->first.second)].insert(it->first.first);
-  }
+    {
+      transicionesR[Par(it->second,it->first.second)].insert(it->first.first);
+    }
 
   {
     std::set<int> estadoInicialDR;
@@ -366,15 +366,15 @@ std::set<std::set<int> > AFD::calculaEstadosDR() const {
       for(std::set<int>::const_iterator itEstadoActual = estadoActual.begin();
           itEstadoActual != estadoActual.end();
           itEstadoActual++)
-      {
-        std::set<int> aux = transicionesR[Par(*itEstadoActual,iSimbolo)];
-        for(std::set<int>::const_iterator itAux = aux.begin();
-            itAux != aux.end();
-            itAux++)
-        {
-          destino.insert(*itAux);
-        } // endfor aux
-      } // endfor estadoActual
+	{
+	  std::set<int> aux = transicionesR[Par(*itEstadoActual,iSimbolo)];
+	  for(std::set<int>::const_iterator itAux = aux.begin();
+	      itAux != aux.end();
+	      itAux++)
+	    {
+	      destino.insert(*itAux);
+	    } // endfor aux
+	} // endfor estadoActual
       transicionesDR[std::pair<std::set<int>,int>(estadoActual,iSimbolo)] = destino;
       if(!destino.empty() && destino != estadoActual && estadosDR.find(destino)==estadosDR.end())
         porProcesar.push_back(destino);
@@ -604,32 +604,32 @@ AFN AFD::AutomataUniversal() {
     RelacionesDeInclusion[*it_i] = SubEstados;
   } // for it_i
   
-	// INI DEBUGGING
-	for (std::map<std::set<int>, std::set<std::set<int> > >::iterator it = RelacionesDeInclusion.begin();
-		it != RelacionesDeInclusion.end();
-		it++) {
-		std::cout << "Estado: { ";
-		for (std::set<int>::iterator it2 = it->first.begin();
-			it2 != it->first.end();
-			it2++) {
-			std::cout << *it2 << " " ;
-		}
-		std::cout << "}" << std::endl;
-		std::cout << "Tiene por abajo: ";
-		for (std::set<std::set<int> >::iterator it2 = it->second.begin();
-			it2 != it->second.end();
-			it2++) {
-			std::cout <<  "{ " ;
-			for (std::set<int>::iterator it3 = it2->begin();
-				it3 != it2->end();
-				it3++) {
-				std::cout << *it3 << " " ;
-			}
-			std::cout <<  "} " ;
-		}
-		std::cout << std::endl;
-	}
-	// FIN DEBUGGING
+  // INI DEBUGGING
+  for (std::map<std::set<int>, std::set<std::set<int> > >::iterator it = RelacionesDeInclusion.begin();
+       it != RelacionesDeInclusion.end();
+       it++) {
+    std::cout << "Estado: { ";
+    for (std::set<int>::iterator it2 = it->first.begin();
+	 it2 != it->first.end();
+	 it2++) {
+      std::cout << *it2 << " " ;
+    }
+    std::cout << "}" << std::endl;
+    std::cout << "Tiene por abajo: ";
+    for (std::set<std::set<int> >::iterator it2 = it->second.begin();
+	 it2 != it->second.end();
+	 it2++) {
+      std::cout <<  "{ " ;
+      for (std::set<int>::iterator it3 = it2->begin();
+	   it3 != it2->end();
+	   it3++) {
+	std::cout << *it3 << " " ;
+      }
+      std::cout <<  "} " ;
+    }
+    std::cout << std::endl;
+  }
+  // FIN DEBUGGING
   
   /**
    * Construimos el automata universal.
@@ -639,12 +639,12 @@ AFN AFD::AutomataUniversal() {
   for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
        it != EstadosFinales.end();
        it++) {
-        if (it->size() == 1) {
-          TraduceEstados[*it] = *(it->begin());
-        } else {
-	  TraduceEstados[*it] = nEstado;
-          nEstado++;
-        }
+    if (it->size() == 1) {
+      TraduceEstados[*it] = *(it->begin());
+    } else {
+      TraduceEstados[*it] = nEstado;
+      nEstado++;
+    }
   }
 
   /**
@@ -653,35 +653,42 @@ AFN AFD::AutomataUniversal() {
    *
    * Tenemos que empezar con las transiciones originales del automata.
    */
+  
   std::map<Par,int> lTransiciones(m_lTransiciones);
+  std::map<Par,int> lTransicionesTmp(m_lTransiciones);  
+  std::set<Transicion> lTransicionesFinales;
 
-  std::set<Transicion> lTransicionesTmp;
+
+  for ( std::set<std::set<int> >::iterator it = EstadosFinales.begin();
+	it != EstadosFinales.end();
+	it++) {
+    std::set<int> st = *it;
+    if (st.size() > 1) { // Si se añaden estados, estos serán fruto de las intersecciones.
+      for (std::set<int>::iterator it2 = st.begin();
+	   it2 != st.end();
+	   it2++) { // it2 => Estados de la interseccion.
+	for (std::map<Par,int>::iterator it3 = lTransicionesTmp.begin();
+	     it3 != lTransicionesTmp.end();
+	     it3++) { // it3 => Cada una de las transiciones originales
+	  if (it3->first.first == *it2) {
+	    if (lTransiciones.find(Par(TraduceEstados[st], it3->first.second)) == lTransiciones.end()) {	      
+	      lTransiciones[Par(TraduceEstados[st], it3->first.second)] = it3->second;
+	    }
+	  }
+	}
+      }      
+    }
+  }
+
+
   for (std::map<Par, int>::iterator it = lTransiciones.begin();
        it != lTransiciones.end();
        it++) {
-    lTransicionesTmp.insert(Transicion(it->first, it->second));
+    lTransicionesFinales.insert(Transicion(it->first, it->second));
   }
 
   for ( std::map<Par,int>::iterator it = lTransiciones.begin();
 	it != lTransiciones.end();
-	it++ ) {
-    // Si llega a un estado, tambien tiene que llegar a todos los que estan incluidos
-    // std::map<std::set<int>, std::set<std::set<int> > > RelacionesDeInclusion;
-    std::set<int> st;
-    st.insert(it->second);
-    Par orig = it->first;
-    std::set<std::set<int> > incl = RelacionesDeInclusion[st];
-    for (std::set<std::set<int> >::iterator it2 = incl.begin();
-	 it2 != incl.end();
-	 it2++) {	
-      lTransicionesTmp.insert(Transicion(orig, TraduceEstados[*it2]));
-    }
-  }
-
-  //TODO: Faltan añadir las transiciones que salen de los estados añadidos.
-  std::set<Transicion> lTransicionesFinales(lTransicionesTmp);
-  for ( std::set<Transicion>::iterator it = lTransicionesTmp.begin();
-	it != lTransicionesTmp.end();
 	it++ ) {
     // Si llega a un estado, tambien tiene que llegar a todos los que estan incluidos
     // std::map<std::set<int>, std::set<std::set<int> > > RelacionesDeInclusion;
