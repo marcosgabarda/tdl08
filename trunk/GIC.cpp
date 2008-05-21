@@ -510,7 +510,6 @@ GIC GIC::eliminacionProduccionesUnitarias() const {
 
   std::map<char,std::vector<std::string> > producciones;
 
-  // Para todo simbolo no terminal
   for (std::set<char>::iterator it = noTerminales.begin();
        it != noTerminales.end();
        it++) {
