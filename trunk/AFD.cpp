@@ -21,6 +21,13 @@
 
 using namespace std;
 
+bool TodoFalse(std::vector<bool> v) {
+	int n = static_cast<int>(v.size());
+	for (int i = 0; i < n; i++) {
+		if (v[i]) return false;
+	}
+	return true;
+}
 
 bool fileExists(const std::string& fileName)
 {
@@ -464,6 +471,7 @@ bool AFD::evaluar (std::string strCadena) const {
  */
 AFN AFD::AutomataUniversal() {
 
+
   unsigned int nEstados = this->getNumEstados(); // N. de estados del automata
   std::set<std::set<int> > EstadosDR = this->calculaEstadosDR();
   unsigned int nEstadosDR = EstadosDR.size();
@@ -501,12 +509,14 @@ AFN AFD::AutomataUniversal() {
   std::set<std::set<int> >::iterator it_i;
   std::set<std::set<int> >::iterator it_j;
   for(it_i = EstadosInciales.begin(); it_i != EstadosInciales.end(); it_i++) {
-    std::vector<bool> vCol(nEstadosDR);
+    std::vector<bool> vCol;
     for(it_j = EstadosDR.begin(); it_j != EstadosDR.end(); it_j++) {
-      if (it_j->find(*it_i->begin()) != it_j->end()) 
+      int nEI = *(it_i->begin());
+      if (it_j->find(nEI) != it_j->end()) {
 	vCol.push_back(true);
-      else 
+      } else {
 	vCol.push_back(false);
+      }
     } // for it_j
     Mapa[*it_i] = vCol;
     if (MapaInverso.find(vCol) == MapaInverso.end()) // Solo insertamos en el inverso si es nuevo el elemento.
@@ -534,25 +544,28 @@ AFN AFD::AutomataUniversal() {
   }
 
   /**
-   * NOTA: No se si te tiene que tener en cuenta un vector con todo a "false".
+   * TODO: No se si te tiene que tener en cuenta un vector con todo a "false".
    */
   std::vector<bool> vColIni(nEstadosDR);
   for (unsigned int i = 0; i < nEstadosDR; i++) vColIni[i] = true;
 
   std::set<int>::iterator it_k;
   for(it_i = Intersecciones.begin(); it_i != Intersecciones.end(); it_i++) {
-    std::vector<bool> vCol(nEstadosDR);
-    vCol = vColIni;
+    std::vector<bool> vCol(vColIni);
     for (it_k = it_i->begin(); it_k != it_i->end(); it_k++) {
-      std::vector<bool> vColNuevo(nEstadosDR);       
+
       std::set<int> aux;
       aux.insert(*it_k);
-      vColNuevo = Mapa[aux];
+
+      std::vector<bool> vColNuevo(Mapa[aux]);
+
       for (unsigned int i = 0; i < nEstadosDR; i++) vCol[i] = vCol[i] && vColNuevo[i];
     } //for it_k
-    Mapa[*it_i] = vCol;
-    if (MapaInverso.find(vCol) == MapaInverso.end()) // Solo insertamos en el inverso si es nuevo el elemento.
-      MapaInverso[vCol] = *it_i;
+    if (!TodoFalse(vCol)) {
+      Mapa[*it_i] = vCol;
+      if (MapaInverso.find(vCol) == MapaInverso.end()) // Solo insertamos en el inverso si es nuevo el elemento.
+        MapaInverso[vCol] = *it_i;
+    }
   } // for it_i
 
   /**
@@ -576,16 +589,12 @@ AFN AFD::AutomataUniversal() {
 	 */
 	std::vector<bool> vColI = Mapa[*it_i];
 	std::vector<bool> vColJ = Mapa[*it_j];
-	bool bTF = false;
 	bool bIncluido = true;
 	for (unsigned int i = 0; i < nEstadosDR; i++) {
-	  if(bTF) {
-	    // No esta incluido
+          if (vColJ[i] && !vColI[i]) {
 	    bIncluido = false;
 	    break;
 	  }
-	  // Seguimos mirando
-	  bTF = !( (vColI[i] && !vColJ[i]) || (vColI[i] == vColJ[i]) ) ;
 	} // for i
 	if (bIncluido) {
 	  SubEstados.insert(*it_j);
@@ -595,17 +604,47 @@ AFN AFD::AutomataUniversal() {
     RelacionesDeInclusion[*it_i] = SubEstados;
   } // for it_i
   
+	// INI DEBUGGING
+	for (std::map<std::set<int>, std::set<std::set<int> > >::iterator it = RelacionesDeInclusion.begin();
+		it != RelacionesDeInclusion.end();
+		it++) {
+		std::cout << "Estado: { ";
+		for (std::set<int>::iterator it2 = it->first.begin();
+			it2 != it->first.end();
+			it2++) {
+			std::cout << *it2 << " " ;
+		}
+		std::cout << "}" << std::endl;
+		std::cout << "Tiene por abajo: ";
+		for (std::set<std::set<int> >::iterator it2 = it->second.begin();
+			it2 != it->second.end();
+			it2++) {
+			std::cout <<  "{ " ;
+			for (std::set<int>::iterator it3 = it2->begin();
+				it3 != it2->end();
+				it3++) {
+				std::cout << *it3 << " " ;
+			}
+			std::cout <<  "} " ;
+		}
+		std::cout << std::endl;
+	}
+	// FIN DEBUGGING
   
   /**
    * Construimos el automata universal.
    */
   std::map<std::set<int>, int> TraduceEstados;
-  int nEstado = 0;
+  int nEstado = nEstados;
   for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
        it != EstadosFinales.end();
        it++) {
-    TraduceEstados[*it] = nEstado;
-    nEstado++;
+        if (it->size() == 1) {
+          TraduceEstados[*it] = *(it->begin());
+        } else {
+	  TraduceEstados[*it] = nEstado;
+          nEstado++;
+        }
   }
 
   /**
@@ -616,11 +655,11 @@ AFN AFD::AutomataUniversal() {
    */
   std::map<Par,int> lTransiciones(m_lTransiciones);
 
-  std::set<Transicion> lTransicionesFinales;
+  std::set<Transicion> lTransicionesTmp;
   for (std::map<Par, int>::iterator it = lTransiciones.begin();
        it != lTransiciones.end();
        it++) {
-    lTransicionesFinales.insert(Transicion(it->first, it->second));
+    lTransicionesTmp.insert(Transicion(it->first, it->second));
   }
 
   for ( std::map<Par,int>::iterator it = lTransiciones.begin();
@@ -635,9 +674,28 @@ AFN AFD::AutomataUniversal() {
     for (std::set<std::set<int> >::iterator it2 = incl.begin();
 	 it2 != incl.end();
 	 it2++) {	
+      lTransicionesTmp.insert(Transicion(orig, TraduceEstados[*it2]));
+    }
+  }
+
+  //TODO: Faltan añadir las transiciones que salen de los estados añadidos.
+  std::set<Transicion> lTransicionesFinales(lTransicionesTmp);
+  for ( std::set<Transicion>::iterator it = lTransicionesTmp.begin();
+	it != lTransicionesTmp.end();
+	it++ ) {
+    // Si llega a un estado, tambien tiene que llegar a todos los que estan incluidos
+    // std::map<std::set<int>, std::set<std::set<int> > > RelacionesDeInclusion;
+    std::set<int> st;
+    st.insert(it->second);
+    Par orig = it->first;
+    std::set<std::set<int> > incl = RelacionesDeInclusion[st];
+    for (std::set<std::set<int> >::iterator it2 = incl.begin();
+	 it2 != incl.end();
+	 it2++) {	
       lTransicionesFinales.insert(Transicion(orig, TraduceEstados[*it2]));
     }
   }
+
 
   // AFD(int cSimbolos, int cEstados, std::map<Par,int> lTransiciones, std::vector<bool> vbEstadosFinales, int iEstadoInicial):
   
@@ -651,7 +709,7 @@ AFN AFD::AutomataUniversal() {
   AFDUniversal.setAlfabeto (lAlfabeto);
   
   //TODO: No recuedo si los finales eran los mismos que en el automata original, o si tambien se añaden
-  // los estados untersección en los que TODOS son finales... ¿me lo estare imaginando?
+  // los estados untersección en los que TODOS son finales... ¿me lo estare imaginando? No te lo imaginas
 
   return AFDUniversal;
 }
