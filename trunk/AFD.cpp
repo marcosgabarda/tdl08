@@ -673,6 +673,7 @@ AFN AFD::AutomataUniversal() {
 	  if (it3->first.first == *it2) {
 	    if (lTransiciones.find(Par(TraduceEstados[st], it3->first.second)) == lTransiciones.end()) {	      
 	      lTransiciones[Par(TraduceEstados[st], it3->first.second)] = it3->second;
+	      std::cout << TraduceEstados[st] << " " << it3->first.second << " " << it3->second << std::endl;
 	    }
 	  }
 	}
