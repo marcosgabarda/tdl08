@@ -59,10 +59,20 @@ bool AFD::salvar(const std::string& strFileName) const {
   for(int iEstado=0; iEstado<m_cEstados; iEstado++)
     osSalida << "State " << iEstado << " initial=" << (m_iEstadoInicial==iEstado) << " final=" << (m_vbEstadosFinales[iEstado] ? 1:0) << std::endl;
   
-  for(int iEstadoOrigen=0; iEstadoOrigen<m_cEstados; iEstadoOrigen++)
-    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
-      osSalida << iEstadoOrigen << " " << (m_lTransiciones.find(Par(iEstadoOrigen,iSimbolo)))->second << " " << m_vcAlfabeto[iSimbolo] << std::endl;
+//  for(int iEstadoOrigen=0; iEstadoOrigen<m_cEstados; iEstadoOrigen++)
+//    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
+//      osSalida << iEstadoOrigen << " " << (m_lTransiciones.find(Par(iEstadoOrigen,iSimbolo)))->second << " " << m_vcAlfabeto[iSimbolo] << std::endl;
+
+  std::map<Par,int>  lTransiciones(m_lTransiciones);
+std::cout << "XD: "<< lTransiciones.size() << std::endl;
+  for(std::map<Par,int>::iterator it = lTransiciones.begin();
+      it != lTransiciones.end();
+      it++) {
+	osSalida << it->first.first << " " << it->second << " " << m_vcAlfabeto[it->first.second] << std::endl;
+  }
+
   osSalida.close();
+
   return true;
 }
 
@@ -209,7 +219,7 @@ AFD AFD::minimizar() const {
     for(int iSimbolo = 0; iSimbolo < m_cSimbolos; iSimbolo++) {
       lTransicionesMinimas[Par(iNuevoEstado,iSimbolo)] = particion.obtenerIndice(m_lTransiciones.find(Par(*((itCompartimento->second).begin()),iSimbolo))->second);
     }
-    vbEstadosMinimosFinales[iNuevoEstado] = m_vbEstadosFinales[*((itCompartimento->second).begin())]; // Seguro que esta l�nea se puede optimizar un 1000%
+    vbEstadosMinimosFinales[iNuevoEstado] = m_vbEstadosFinales[*((itCompartimento->second).begin())]; // Seguro que esta línea se puede optimizar un 1000%
   }
 
   AFD afdMinimo(m_cSimbolos, static_cast<int>(particion.getSize()), lTransicionesMinimas, vbEstadosMinimosFinales, particion.obtenerIndice(m_iEstadoInicial));
@@ -452,7 +462,7 @@ bool AFD::evaluar (std::string strCadena) const {
 /**
  * Calcula el automata unversal.
  */
-AFD AFD::AutomataUniversal() {
+AFN AFD::AutomataUniversal() {
 
   unsigned int nEstados = this->getNumEstados(); // N. de estados del automata
   std::set<std::set<int> > EstadosDR = this->calculaEstadosDR();
@@ -508,7 +518,7 @@ AFD AFD::AutomataUniversal() {
    * Para generar todas las intersecciones, se generan todas las posibles combinaciones
    * de estados, de forma incremental, admitiendo repeticiones y importando el orden, y se 
    * introducen en un conjunto que elimina los elementos que estan ya repetidos
-   * y donde no importa el orden.
+   * y donde no importa el orden. COSTE EXPONENCIAL.
    */
   int nLimit = static_cast<int>(pow(static_cast<float>(nEstados),static_cast<float>(nEstados) ));;
   for (int i = 0; i < nLimit; i++) {
@@ -546,10 +556,7 @@ AFD AFD::AutomataUniversal() {
   } // for it_i
 
   /**
-   * Definimos las relaciones de inclusion. Si hay una transición que llega a 
-   * un estado, tambien llega a todos los que esten incluidos.
-   *
-   * Tenemos que empezar con las transiciones originales del automata.   
+   * Definimos las relaciones de inclusion.
    */
   std::map<std::set<int>, std::set<std::set<int> > > RelacionesDeInclusion;
   std::set<std::set<int> > EstadosFinales;
@@ -593,7 +600,7 @@ AFD AFD::AutomataUniversal() {
    * Construimos el automata universal.
    */
   std::map<std::set<int>, int> TraduceEstados;
-  int nEstado = getNumEstados(); // TODO: No recuerdo si los estados empezaban en 1 o en 0.
+  int nEstado = 0;
   for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
        it != EstadosFinales.end();
        it++) {
@@ -601,8 +608,21 @@ AFD AFD::AutomataUniversal() {
     nEstado++;
   }
 
+  /**
+   * Si hay una transición que llega a un estado, tambien llega a todos los
+   * que esten incluidos.
+   *
+   * Tenemos que empezar con las transiciones originales del automata.
+   */
   std::map<Par,int> lTransiciones(m_lTransiciones);
-  std::map<Par,int> lTransicionesFinales(m_lTransiciones);
+
+  std::set<Transicion> lTransicionesFinales;
+  for (std::map<Par, int>::iterator it = lTransiciones.begin();
+       it != lTransiciones.end();
+       it++) {
+    lTransicionesFinales.insert(Transicion(it->first, it->second));
+  }
+
   for ( std::map<Par,int>::iterator it = lTransiciones.begin();
 	it != lTransiciones.end();
 	it++ ) {
@@ -614,8 +634,8 @@ AFD AFD::AutomataUniversal() {
     std::set<std::set<int> > incl = RelacionesDeInclusion[st];
     for (std::set<std::set<int> >::iterator it2 = incl.begin();
 	 it2 != incl.end();
-	 it2++) {
-      lTransicionesFinales[orig] = TraduceEstados[*it2];
+	 it2++) {	
+      lTransicionesFinales.insert(Transicion(orig, TraduceEstados[*it2]));
     }
   }
 
@@ -627,8 +647,8 @@ AFD AFD::AutomataUniversal() {
   std::vector<bool> vbEstadosFin(m_vbEstadosFinales);
   int iEstadoInicial = m_iEstadoInicial;
   
-  AFD AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFin, iEstadoInicial);
-  AFDUniversal.setAlfabeto (lAlfabeto); // TODO: Fallo de segmentacion
+  AFN AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFin, iEstadoInicial);
+  AFDUniversal.setAlfabeto (lAlfabeto);
   
   //TODO: No recuedo si los finales eran los mismos que en el automata original, o si tambien se añaden
   // los estados untersección en los que TODOS son finales... ¿me lo estare imaginando?

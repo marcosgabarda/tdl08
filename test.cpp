@@ -1,4 +1,5 @@
 #include "AFD.h"
+#include "AFN.h"
 #include "GIC.h"
 #include <iostream>
 #include <vector>
@@ -96,9 +97,11 @@ int main() {
 
   AFD Aut(Alfabeto, nEstados, Transiciones, Finales, nEstadoInicial);
 
-  AFD AutU =  Aut.AutomataUniversal();
+  AFN AutU =  Aut.AutomataUniversal();
   
   cout << "Numero de estados del AU: " << AutU.getNumEstados() << endl;
+  AutU.setName(string("foo"));
+  AutU.salvar("automanta_universal.txt");
 
   return 0;
   
