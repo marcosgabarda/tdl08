@@ -48,7 +48,7 @@ std::set<char> GIC::simbolosGenerativos() const {
 	  
       }
       if (bTerGen) { // El no terminal tiene una produccion al menos que esta en lGeneradoresAux*
-	lGeneradores.insert(cNoTerminal);	
+	lGeneradores.insert(cNoTerminal);
       }
     }
     

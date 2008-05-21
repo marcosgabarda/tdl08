@@ -9,9 +9,8 @@
 #include <set>
 #include <string>
 #include <cstdlib>
-
-typedef std::pair<int,int> Par;
-typedef std::pair<int,char> cPar;
+#include "AFN.h"
+#include "types.h"
 
 /*
  * Clase que implementa un Automata Finito Determinista. 
@@ -122,7 +121,7 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
   /*
    * Calcula el automata unversal.
    */
-  AFD AutomataUniversal();
+  AFN AutomataUniversal();
 
  private:
 	
