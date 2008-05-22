@@ -543,9 +543,6 @@ AFN AFD::AutomataUniversal() {
     }
   }
 
-  /**
-   * TODO: No se si te tiene que tener en cuenta un vector con todo a "false".
-   */
   std::vector<bool> vColIni(nEstadosDR);
   for (unsigned int i = 0; i < nEstadosDR; i++) vColIni[i] = true;
 
@@ -658,7 +655,7 @@ AFN AFD::AutomataUniversal() {
   std::map<Par,int> lTransicionesTmp(m_lTransiciones);  
   std::set<Transicion> lTransicionesFinales;
 
-
+  // TODO: Solo añadir las transiciones comunes a los estados que forman la interseccion.
   for ( std::set<std::set<int> >::iterator it = EstadosFinales.begin();
 	it != EstadosFinales.end();
 	it++) {
@@ -667,20 +664,26 @@ AFN AFD::AutomataUniversal() {
       for (std::set<int>::iterator it2 = st.begin();
 	   it2 != st.end();
 	   it2++) { // it2 => Estados de la interseccion.
-	for (std::map<Par,int>::iterator it3 = lTransicionesTmp.begin();
-	     it3 != lTransicionesTmp.end();
-	     it3++) { // it3 => Cada una de las transiciones originales
-	  if (it3->first.first == *it2) {
-	    if (lTransiciones.find(Par(TraduceEstados[st], it3->first.second)) == lTransiciones.end()) {	      
-	      lTransiciones[Par(TraduceEstados[st], it3->first.second)] = it3->second;
-	      std::cout << TraduceEstados[st] << " " << it3->first.second << " " << it3->second << std::endl;
-	    }
-	  }
-	}
-      }      
-    }
-  }
-
+	for (std::set<int>::iterator it3 = st.begin();
+	     it3 != st.end();
+	     it3++) { // it3 => Estados de la interseccion.
+	  if (*it2 != *it3 ) {
+	    for (std::map<Par,int>::iterator it4 = lTransicionesTmp.begin();
+		 it4 != lTransicionesTmp.end();
+		 it4++) { // it4 => Cada una de las transiciones originales
+	      Par origen1(*it2, it4->first.second);
+	      Par origen2(*it3, it4->first.second);
+	      if (lTransicionesTmp.find(origen1) != lTransicionesTmp.end() && lTransicionesTmp.find(origen2) != lTransicionesTmp.end()) {
+		if (lTransicionesTmp[origen1] == lTransicionesTmp[origen2]){
+		  lTransiciones[Par(TraduceEstados[st], it4->first.second)] = it4->second;
+		}
+	      }
+	    } // for it4
+	  } // if
+	} // for it3
+      } // for it2
+    } // if
+  } // for it
 
   for (std::map<Par, int>::iterator it = lTransiciones.begin();
        it != lTransiciones.end();
