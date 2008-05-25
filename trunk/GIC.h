@@ -54,6 +54,12 @@ public:
 
   bool accepts(const std::string& strCadena) const;
 
+  void mostrarGramatica() const;
+
+  std::map<char,std::vector<std::string> > getProducciones() {
+    return m_producciones;
+  }
+
 };
 
 #endif /*GIC_H_*/
