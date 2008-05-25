@@ -10,7 +10,6 @@ GIC::GIC(std::set<char> noTerminales,
 								  m_producciones(producciones)
 {}
 
-
 /**
  * Calcula los simbolos generativos de una gramática incontextual.
  */
@@ -93,6 +92,8 @@ GIC GIC::eliminacionNoGenerativos() const {
 
   noTerminales  = generativos;
   noTerminales.insert(simboloInicial);
+
+  //  producciones[simboloInicial] = produccionesOriginales[simboloInicial];
 
   std::set<char>::iterator it;
   for (it = generativos.begin(); it != generativos.end(); it++) {
@@ -239,7 +240,7 @@ std::set<char> GIC::simbolosAnulables() const {
   std::set<char> lAux;
 
   do {
-
+    lAux.clear(); // Vaciamos la lista auxiliar
     std::set<char> lSimbolos;
     std::set<char>::iterator it;
     for (it = noTerminales.begin(); it != noTerminales.end(); it++) {
@@ -273,6 +274,8 @@ std::set<char> GIC::simbolosAnulables() const {
 
   } while (lAux.size() != 0);
 
+  return lAnulables;
+
 }
 
 std::set<std::string> concatena(std::set<std::string> A, std::set<std::string> B) {
@@ -295,6 +298,8 @@ std::set<std::string> concatena(std::set<std::string> A, std::set<std::string> B
 
 std::set<std::string> GIC::sustitucion (std::string z, std::set<char> Anulables) const {
 
+  //  std::cout << "CADENA: " << z << std::endl;
+
   std::set<char> lSimbolos (m_noTerminales);
   std::set<char> terminales(m_terminales);
 
@@ -304,63 +309,53 @@ std::set<std::string> GIC::sustitucion (std::string z, std::set<char> Anulables)
     lSimbolos.insert(*it);
   }
 
-  std::vector<std::set<char> > vAux;
+  std::vector<std::set<std::string> > vAux;
   int lenZ = static_cast<int>(z.size());
   for (int i = 0; i < lenZ; i++) {
-    std::set<char> tmp;
-    char x = z[i];
+    std::set<std::string> tmp;
+    std::string x;
+    //    std::cout << "{ ";
+    x.push_back(z[i]);   
     tmp.insert(x);
-    if (Anulables.find(x) != Anulables.end()) {
-      tmp.insert('\0');
+    //std::cout << x << " ";
+    if (Anulables.find(x[0]) != Anulables.end()) {
+      tmp.insert(std::string(""));
+      //std::cout << "lambda ";
     }
+    //std::cout << "} " << std::endl;
     vAux.push_back(tmp);
   }
   
+  if (vAux.size() == 1) {
+    return vAux[0];
+  }
+
   std::set<std::string> Resultado;
 
   std::set<std::string> A;
   std::set<std::string> B;
-  
-  std::set<char> Atmp= vAux[0];
-  std::set<char> Btmp= vAux[1];
-  
-  for (std::set<char>::iterator it = Atmp.begin();
-       it != Atmp.end();
-       it++) {
-    std::string s;
-    if (*it == '\0') s.append("");
-    else s.push_back(*it);
-    A.insert(s);
-  }
-  
-  for (std::set<char>::iterator it = Btmp.begin();
-       it != Btmp.end();
-       it++) {
-    std::string s;
-    if (*it == '\0') s.append("");
-    else s.push_back(*it);
-    B.insert(s);
-  }
+
+  A = vAux[0];  
+  B = vAux[1];
 
   Resultado = concatena(A, B);
 
   int n = static_cast<int>(vAux.size());
   for (int i = 2; i < n; i++) {
-    std::set<std::string> C;
-    std::set<char> Ctmp= vAux[i];
-    for (std::set<char>::iterator it = Ctmp.begin();
-	 it != Ctmp.end();
-	 it++) {
-      std::string s;
-      if (*it == '\0') s.append("");
-      else s.push_back(*it);
-      C.insert(s);
-    }
-    Resultado = concatena(Resultado, C);  
+    std::set<std::string> C = vAux[i];
+    Resultado = concatena(Resultado, C);
   }
 
   Resultado.erase(std::string(""));
-  
+
+  //  std::cout << "RESULTADO: { ";  
+  //for ( std::set<std::string>::iterator ite =  Resultado.begin();
+  //	ite != Resultado.end();
+  //	ite++) {
+  //    std::cout << *ite << " ";
+  //}
+  //std::cout << "}" << std::endl;  
+
   return Resultado;
 
 }
@@ -380,17 +375,20 @@ GIC GIC::eliminacionProcuccionesVacias() const {
   std::set<char>::iterator it;
   for (it = noTerminales.begin(); it != noTerminales.end(); it++) {
     char A = *it;
+
     std::vector<std::string> vProd = produccionesOrig[A];
     std::vector<std::string> vProdNuevas;
     std::set<std::string> nuevasProd;
     int nProd = static_cast<int> (vProd.size());
     for (int i = 0; i < nProd; i++) {
       std::string prod = vProd[i];
-      std::set<std::string> tmp = sustitucion(prod, anulables);
-      for (std::set<std::string>::iterator itTmp = tmp.begin();
-	   itTmp != tmp.end();
-	   itTmp++) {
-	nuevasProd.insert(*itTmp);
+      if (prod != "") {
+	std::set<std::string> tmp = sustitucion(prod, anulables);
+	for (std::set<std::string>::iterator itTmp = tmp.begin();
+	     itTmp != tmp.end();
+	     itTmp++) {
+	  nuevasProd.insert(*itTmp);
+	}
       }
     }
     for (std::set<std::string>::iterator itTmp = nuevasProd.begin();
@@ -398,7 +396,6 @@ GIC GIC::eliminacionProcuccionesVacias() const {
 	 itTmp++) {
       vProdNuevas.push_back(*itTmp);
     }
-
     producciones[A] = vProdNuevas;
   }
   
@@ -418,18 +415,18 @@ std::set<char> GIC::produccionesUnitarias(char A) const {
   lAux.insert(A);
 
   do {
-        
+  
     std::set<char> lAux2;
     for (std::set<char>::iterator itAux = lAux.begin(); 
 	 itAux != lAux.end(); 
 	 itAux++) {
       char B = *itAux;
+      std::vector<std::string> vProd = producciones[B];
+      int nProd = static_cast<int> (vProd.size());
       for (std::set<char>::iterator itNoTerm = noTerminales.begin();
 	   itNoTerm != noTerminales.end();
 	   itNoTerm++) {
 	char C = *itNoTerm;
-	std::vector<std::string> vProd = producciones[B];
-	int nProd = static_cast<int> (vProd.size());
 	for (int i = 0; i < nProd; i++) {
 	  std::string prod = vProd[i];
 	  if (prod.size() == 1 && prod[0] == C) { // Si se cumple, se tiene que añadir B a lAux.
@@ -439,13 +436,12 @@ std::set<char> GIC::produccionesUnitarias(char A) const {
       } // for itNoTerm      
     } // for itAux
 
-
     // aux1 = aux2 - C(A)
     std::set<char> tmp;
     for (std::set<char>::iterator it = lAux2.begin(); 
 	 it != lAux2.end();
 	 it++) {
-      if (alcanzablesUnitarias.find(*it) != alcanzablesUnitarias.end())
+      if (alcanzablesUnitarias.find(*it) == alcanzablesUnitarias.end())
 	tmp.insert(*it);
     }
     lAux = tmp;
@@ -515,7 +511,7 @@ GIC GIC::eliminacionProduccionesUnitarias() const {
        it++) {
     char A = *it;
     std::set<char> CNoTerm = produccionesUnitarias(A);
-
+    
     std::set<std::string> tmp = union_no_unitarias ( A, CNoTerm);
     std::vector<std::string> vTmp;
     for (std::set<std::string>::iterator itTmp = tmp.begin();
@@ -544,10 +540,24 @@ GIC GIC::gramaticaSimplificada() const {
    *    simplificada.
    */
 
+  std::cout << "ORIGINAL." << std::endl;
+  mostrarGramatica();
+
   GIC G1 = eliminacionProcuccionesVacias();
+  std::cout << "Producciones vacias eliminadas." << std::endl;
+  G1.mostrarGramatica();
+
   GIC G2 = G1.eliminacionProduccionesUnitarias();
+  std::cout << "Producciones unitarias eliminadas." << std::endl;
+  G2.mostrarGramatica();
+
   GIC G3 = G2.eliminacionNoGenerativos();
+  std::cout << "Simbolos no generativos eliminados." << std::endl;
+  G3.mostrarGramatica();
+  
   GIC G4 = G3.eliminacionNoAlcanzables();
+  std::cout << "Simbolos no alcanzables eliminados." << std::endl;
+  G4.mostrarGramatica();
 
   return G4;
 
@@ -689,4 +699,22 @@ bool GIC::accepts(const std::string& strCadena) const {
   // TODO: delete V
 
   return (V[1][n].find(m_simboloInicial)!=V[1][n].end());
+}
+
+void GIC::mostrarGramatica() const {
+
+  std::map<char, std::vector<std::string> >::iterator it;
+  std::map<char, std::vector<std::string> > lProducciones(m_producciones);
+
+  for (it = lProducciones.begin(); it != lProducciones.end(); it++) {
+    std::cout << it->first << " -> ";
+    std::vector<std::string> p = it->second;
+    int n = static_cast<int>(p.size());
+    int i;
+    for (i = 0; i < n - 1; i++) {
+      std::cout << p[i] << " | ";
+    }
+    std::cout << p[i] << std::endl;
+  }
+
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <string>
 
 using namespace std;
 
@@ -20,7 +21,7 @@ int main() {
   noTerminales.insert('S');
   noTerminales.insert('A');
   noTerminales.insert('B');
-  noTerminales.insert('E');
+  noTerminales.insert('C');
   
   terminales.insert('a');
   terminales.insert('b');
@@ -28,51 +29,30 @@ int main() {
   simboloInicial = 'S';
 
   vector<string> v;
-  v.push_back(string("SA"));
-  v.push_back(string("A"));
+  v.push_back(string("SS"));
+  v.push_back(string("CA"));
   producciones['S'] = v;
 
   vector<string> v1;
-  v1.push_back(string("AbA"));
-  v1.push_back(string("BB"));
+  v1.push_back(string("bAA"));
+  v1.push_back(string("aC"));
+  v1.push_back(string("B"));
   producciones['A'] = v1;
 
   vector<string> v2;
-  v2.push_back(string("BBb"));
-  v2.push_back(string("a"));
+  v2.push_back(string("aSS"));
+  v2.push_back(string("BC"));
   producciones['B'] = v2;
 
   vector<string> v3;
-  v3.push_back(string("a"));
-  v3.push_back(string("Ea"));
-  producciones['E'] = v3;
+  v3.push_back(string("CC"));
+  v3.push_back(string(""));
+  producciones['C'] = v3;
 
 
   GIC *G = new GIC(noTerminales, terminales, simboloInicial, producciones);
   
-  set<char> sg = G->simbolosAlcanzables();
-  
-  set<char>::iterator it;
-  for (it = sg.begin(); it != sg.end(); it++) {
-    cout << *it << endl;
-  }
-
-  cout << "### Concatenacion ###" << endl;
-
-  set<string> A;
-  A.insert(string("Aa"));
-  A.insert(string("a"));
-  A.insert(string("AaA"));
-  A.insert(string("aA"));
-  set<string> B;
-  B.insert(string("B"));
-
-  set<string> res = concatena (A, B);
-  set<string>::iterator it2;
-  for (it2 = res.begin(); it2 != res.end(); it2++) {
-    cout << *it2 << endl;
-  }
-
+  GIC GSimplificada = G->gramaticaSimplificada();
 
   cout << endl << endl << "### PRUEBAS DE AFD" << endl << endl;
 
