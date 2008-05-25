@@ -49,7 +49,6 @@ int main() {
   v3.push_back(string(""));
   producciones['C'] = v3;
 
-
   GIC *G = new GIC(noTerminales, terminales, simboloInicial, producciones);
   
   GIC GSimplificada = G->gramaticaSimplificada();
