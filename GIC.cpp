@@ -430,7 +430,7 @@ std::set<char> GIC::produccionesUnitarias(char A) const {
 	for (int i = 0; i < nProd; i++) {
 	  std::string prod = vProd[i];
 	  if (prod.size() == 1 && prod[0] == C) { // Si se cumple, se tiene que añadir B a lAux.
-	    lAux2.insert(B);
+	    lAux2.insert(C);
 	  }
 	} // for i	
       } // for itNoTerm      
@@ -455,6 +455,14 @@ std::set<char> GIC::produccionesUnitarias(char A) const {
 
   } while (lAux.size() != 0);
   
+  std::cout << "C(" << A << ") = { ";
+  for (std::set<char>::iterator it = alcanzablesUnitarias.begin(); 
+       it != alcanzablesUnitarias.end();
+       it++) {
+    std::cout << *it << " ";
+  }
+  std::cout << "}" << std::endl;
+
   return alcanzablesUnitarias;
 }
 
@@ -465,7 +473,7 @@ std::set<std::string> GIC::producciones_varios_auxiliares (char A) const {
 
   std::vector<std::string> vProd = producciones[A];
   std::set<std::string> lProdNuevas;
-  
+
   int nProd = static_cast<int> (vProd.size());
   for(int i = 0; i < nProd; i++) {    
     std::string prod = vProd[i];
