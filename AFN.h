@@ -16,6 +16,41 @@
  */
 class AFN
 {
+ private:
+	
+  int m_cSimbolos; 
+  int m_cEstados; 
+
+  // Estado inicial del automata.
+  int m_iEstadoInicial;
+	
+  /* 
+   * Vector de booleanos, donde final[e] == true indica que el estado e es final,
+   * y no en caso contrario.
+   */
+  std::vector<bool> m_vbEstadosFinales; 
+
+  /*
+   * Mapa de transiciones. Para obtener el destino de una transicion desde un origen, con un
+   * simbolo, hay que acceder al mapa con el par (origen,simbolo) y nos devolvera el destino
+   */
+  std::set<Transicion> m_lTransiciones;
+
+  /*
+   * Mapa para traducir al alfabeto de entrada a un entero identificador.
+   */
+  std::map<char, int> m_lciAlfabeto;
+  
+  /*
+   * Mapa para traducir de entero identifcador a simbolo del alfabeto.
+   */
+  std::vector<char> m_vcAlfabeto;
+
+  /*
+   * Nombre del autómata.
+   */
+  std::string m_strName;
+
  public:
 
   /*
@@ -66,38 +101,6 @@ AFN(std::set<char> lSimbolos, int cEstados, std::set<cTransicion> lTransiciones,
 
   std::string getName() const { return m_strName; };
   void setName(const std::string& strName) { m_strName = strName; }
-  
-
- private:
-	
-  std::string m_strName;
-  int m_cSimbolos; 
-  int m_cEstados; 
-
-  /*
-   * Mapa de transiciones. Para obtener el destino de una transicion desde un origen, con un
-   * simbolo, hay que acceder al mapa con el par (origen,simbolo) y nos devolvera el destino
-   */
-  std::set<Transicion> m_lTransiciones;
-	
-  /* 
-   * Vector de booleanos, donde final[e] == true indica que el estado e es final,
-   * y no en caso contrario.
-   */
-  std::vector<bool> m_vbEstadosFinales; 
-
-  // Estado inicial del automata.
-  int m_iEstadoInicial;
-  
-  /*
-   * Mapa para traducir al alfabeto de entrada a un entero identificador.
-   */
-  std::map<char, int> m_lciAlfabeto;
-  
-  /*
-   * Mapa para traducir de entero identifcador a simbolo del alfabeto.
-   */
-  std::vector<char> m_vcAlfabeto;
 
 };
 

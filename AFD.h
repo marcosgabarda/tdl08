@@ -17,6 +17,57 @@
  */
 class AFD
 {
+ private:
+	
+  std::string m_strName;
+  int m_cSimbolos; 
+  int m_cEstados; 
+
+  /*
+   * Mapa de transiciones. Para obtener el destino de una transicion desde un origen, con un
+   * simbolo, hay que acceder al mapa con el par (origen,simbolo) y nos devolvera el destino
+   */
+  std::map<Par, int> m_lTransiciones;
+	
+  /* 
+   * Vector de booleanos, donde final[e] == true indica que el estado e es final,
+   * y no en caso contrario.
+   */
+  std::vector<bool> m_vbEstadosFinales; 
+
+  // Estado inicial del automata.
+  int m_iEstadoInicial;
+  
+  /*
+   * Mapa para traducir al alfabeto de entrada a un entero identificador.
+   */
+  std::map<char, int> m_lciAlfabeto;
+  
+  /*
+   * Mapa para traducir de entero identifcador a simbolo del alfabeto.
+   */
+  std::vector<char> m_vcAlfabeto;
+
+  /*
+   * inicializar -> inicializa el AFD de forma aleatoria.
+   */
+  void inicializar();
+  
+  /*
+   * Comprueba si hay estados no alcanzables
+   */
+  bool hayEstadosNoAlcanzables() const;
+
+  std::set<std::set<int> > calculaEstadosDR() const;
+
+  std::set<int> estadosAlcanzables(int cSimbolos,
+                                   const std::map<Par,int>& lTransiciones,
+                                   int iEstadoInicial) const;
+
+  std::set<int> estadosGenerativos(int cSimbolos,
+                                   const std::map<Par,int>& lTransiciones,
+                                   const std::set<int>& lEstadosFinales) const;
+
  public:
 
    int getNumEstados() {return m_cEstados;}
@@ -88,12 +139,11 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
      } while (m_lTransiciones.empty());
    }
 
- 
+
   /*
    * minimizar -> devuelve el AFD mínimo asociado a este AFD
    */
   AFD minimizar() const;
-  AFD minimizar2() const;
 
   /*
    *
@@ -122,101 +172,7 @@ AFD(std::set<char> lSimbolos, int cEstados, std::map<cPar,int> lTransiciones, st
    * Calcula el automata unversal.
    */
   AFN AutomataUniversal();
-
- private:
-	
-  std::string m_strName;
-  int m_cSimbolos; 
-  int m_cEstados; 
-
-  /* 
-   * Función auxiliar que nos permite calcular las intersecciones entre lenguajes por la derecha para
-   * poder calcular el autómata universal
-   */
-
-
-	
-  /*
-   * Mapa de transiciones. Para obtener el destino de una transicion desde un origen, con un
-   * simbolo, hay que acceder al mapa con el par (origen,simbolo) y nos devolvera el destino
-   */
-  std::map<Par, int> m_lTransiciones;
-	
-  /* 
-   * Vector de booleanos, donde final[e] == true indica que el estado e es final,
-   * y no en caso contrario.
-   */
-  std::vector<bool> m_vbEstadosFinales; 
-
-  // Estado inicial del automata.
-  int m_iEstadoInicial;
-  
-  /*
-   * Mapa para traducir al alfabeto de entrada a un entero identificador.
-   */
-  std::map<char, int> m_lciAlfabeto;
-  
-  /*
-   * Mapa para traducir de entero identifcador a simbolo del alfabeto.
-   */
-  std::vector<char> m_vcAlfabeto;
-
-  /*
-   * inicializar -> inicializa el AFD de forma aleatoria.
-   */
-  void inicializar();
-  
-  /*
-   * Comprueba si hay estados no alcanzables
-   */
-  bool hayEstadosNoAlcanzables() const;
  
-  std::set<std::set<int> > calculaEstadosDR() const;
-
-  /*
-   * Funciones auxiliares para la minimizacion
-   */
-  class Particion {
-  private:
-    typedef std::map<std::list<int>,std::list<int> > t_Particion;
-    t_Particion m_Particion;
-
-  public:
-    typedef std::list<int> t_IDCompartimento;
-    typedef std::list<int> t_ListaEstados;
-    typedef t_Particion::const_iterator const_iterator;
-    typedef t_Particion::iterator iterator;
-
-    void insertarEnCompartimento(const t_IDCompartimento& lIDCompartimento, const int estado);
-    t_IDCompartimento obtenerCompartimento(const int iEstado) const;
-    int obtenerIndice(const int iEstado) const;
-    bool operator ==(const Particion& rhs) const;
-    t_ListaEstados& operator [](const t_IDCompartimento& lIDCompartimento) {
-      return m_Particion[lIDCompartimento];
-    }
-    
-    size_t getSize() const
-    {
-      return m_Particion.size();
-    }
-
-    iterator begin() {
-      return m_Particion.begin();
-    }
-
-    const_iterator begin() const {
-      return m_Particion.begin();
-    }
-
-    iterator end() {
-      return m_Particion.end();
-    }
-
-    const_iterator end() const {
-      return m_Particion.end();
-    }
-  };
-	
 };
 
 #endif /*AFD_H_*/

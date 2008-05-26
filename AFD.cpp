@@ -85,7 +85,15 @@ bool AFD::salvar(const std::string& strFileName) const {
 
 bool AFD::hayEstadosNoAlcanzables() const {
 
-  int iEstadoActual = m_iEstadoInicial;
+  if (estadosAlcanzables(m_cSimbolos,m_lTransiciones,m_iEstadoInicial).size() != m_cEstados) 
+    return true;
+  return false;
+}
+
+std::set<int> AFD::estadosAlcanzables(int cSimbolos,
+                                      const std::map<Par,int>& lTransiciones,
+                                      int iEstadoInicial) const {
+  int iEstadoActual = iEstadoInicial;
 
   std::queue<int> lEstados;
   std::set<int> lEstadosVisitados;
@@ -98,21 +106,51 @@ bool AFD::hayEstadosNoAlcanzables() const {
     iEstadoActual = lEstados.front();
     lEstados.pop();
 
-    for (int i = 0; i < m_cSimbolos; i++) {
-      if (m_lTransiciones.find(Par(iEstadoActual,i)) != m_lTransiciones.end()) {
-        int iEstadoDestino = m_lTransiciones.find(Par(iEstadoActual,i))->second;
-	if (lEstadosVisitados.find(iEstadoDestino) == lEstadosVisitados.end()) {
-	  lEstados.push(iEstadoDestino);
-	  lEstadosVisitados.insert(iEstadoDestino);
-	}
+    for (int i = 0; i < cSimbolos; i++) {
+      if (lTransiciones.find(Par(iEstadoActual,i)) != lTransiciones.end()) {
+        int iEstadoDestino = lTransiciones.find(Par(iEstadoActual,i))->second;
+	      if (lEstadosVisitados.find(iEstadoDestino) == lEstadosVisitados.end()) {
+	        lEstados.push(iEstadoDestino);
+	        lEstadosVisitados.insert(iEstadoDestino);
+	      }
       }
     }    
   }
 
-  if (lEstadosVisitados.size() != m_cEstados) 
-    return true;
-  return false;
+  return lEstadosVisitados;
+}
 
+std::set<int> AFD::estadosGenerativos(int cSimbolos,
+                                      const std::map<Par,int>& lTransiciones,
+                                      const std::set<int>& lEstadosFinales) const {
+  std::queue<int> lEstados;
+  std::set<int> lEstadosGenerativos(lEstadosFinales);
+
+  for(std::set<int>::const_iterator itEstadosFinales = lEstadosFinales.begin();
+      itEstadosFinales != lEstadosFinales.end();
+      itEstadosFinales++)
+        lEstados.push(*itEstadosFinales);
+
+  while (!lEstados.empty()) {
+
+    int iEstadoActual = lEstados.front();
+    lEstados.pop();
+
+    // TODO
+    for(std::map<Par,int>::const_iterator itTransiciones = lTransiciones.begin();
+        itTransiciones != lTransiciones.end();
+        itTransiciones++)
+    {
+      if(itTransiciones->second==iEstadoActual &&
+         lEstadosGenerativos.find(itTransiciones->first.first)==lEstadosGenerativos.end())
+      {
+        lEstados.push(itTransiciones->first.first);
+        lEstadosGenerativos.insert(itTransiciones->first.first);
+      }
+    }
+  }
+
+  return lEstadosGenerativos;
 }
 
 void AFD::inicializar() {
@@ -162,155 +200,127 @@ void AFD::inicializar() {
 }
 
 AFD AFD::minimizar() const {
-  
-  /*
-   * El algoritmo comienza con una particion de estados entre finales y no finales,
-   * y va refinando la particion. Cuando la particion no puede refirnarse mas,
-   * todos los estados de un compartimento de la particion pueden ser fusionados en
-   * uno solo.
-   */
-  
-  Particion particion;
-  bool bCambio = true;
-
-  /*
-   * Particion inicial
-   */
-
-  for (int i = 0; i < m_cEstados; i++) {
-    Particion::t_IDCompartimento lNombreParticion;
-    lNombreParticion.push_back(m_vbEstadosFinales[i] ? 0 : 1);
-    particion[lNombreParticion].push_back(i);
-  }
-
-  do {
-    Particion nuevaParticion;
-    for(int iEstado = 0; iEstado < m_cEstados; iEstado++ ) {
-      Particion::t_IDCompartimento lNombreParticion = particion.obtenerCompartimento(iEstado);
-      
-      /*
-       * Si la particion solo tiene mas de un estado, es susceptible de refinarse mas
-       */
-      if(particion[lNombreParticion].size() > 1)
-        /*
-         * Calculamos el nombre de la nueva particion
-         */
-        for (int iSimbolo = 0; iSimbolo < m_cSimbolos; iSimbolo++)
-	  //          lNombreParticion.merge(particion.obtenerCompartimento(m_lTransiciones.find(Par(iEstado,iSimbolo))->second));
-      
-	  nuevaParticion[lNombreParticion].push_back(iEstado);
-    }
-
-    if(nuevaParticion == particion)
-      bCambio=false;
-
-    particion = nuevaParticion;
-    
-  } while (bCambio);
-  
-  /*
-   * En este punto la particion se ha refinado al maximo
-   */
-
-  /*
-   * Si la particion esta refinada al maximo
-   */
-  if(particion.getSize() == static_cast<unsigned int>(m_cEstados))
-    return *this; // Devolvemos el AFD actual, porque es minimo
-
-  std::map<Par,int> lTransicionesMinimas;
-  std::vector<bool> vbEstadosMinimosFinales(particion.getSize());
-  int iNuevoEstado = 0;
-
-  for(Particion::const_iterator itCompartimento=particion.begin(); itCompartimento != particion.end(); itCompartimento++, iNuevoEstado++) {
-    for(int iSimbolo = 0; iSimbolo < m_cSimbolos; iSimbolo++) {
-      lTransicionesMinimas[Par(iNuevoEstado,iSimbolo)] = particion.obtenerIndice(m_lTransiciones.find(Par(*((itCompartimento->second).begin()),iSimbolo))->second);
-    }
-    vbEstadosMinimosFinales[iNuevoEstado] = m_vbEstadosFinales[*((itCompartimento->second).begin())]; // Seguro que esta línea se puede optimizar un 1000%
-  }
-
-  AFD afdMinimo(m_cSimbolos, static_cast<int>(particion.getSize()), lTransicionesMinimas, vbEstadosMinimosFinales, particion.obtenerIndice(m_iEstadoInicial));
-
-
-  return afdMinimo;  
-}
-
-AFD AFD::minimizar2() const {
   std::vector<std::set<int> > P(2);
   std::vector<std::set<int> > P2;
   std::set<std::set<int> > L;
   std::set<int> noFinales;
 
   for(int iEstado=0; iEstado<m_cEstados; iEstado++)
-    {
-      P[m_vbEstadosFinales[iEstado] ? 0 : 1].insert(iEstado);
-      if(!m_vbEstadosFinales[iEstado])
-	noFinales.insert(iEstado);
-    }
+  {
+    P[m_vbEstadosFinales[iEstado] ? 0 : 1].insert(iEstado);
+    if(!m_vbEstadosFinales[iEstado])
+      noFinales.insert(iEstado);
+  }
   L.insert(noFinales);
 
   while(!L.empty())
+  {
+    std::set<int> S = *(L.begin());
+    L.erase(L.begin());
+
+    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
     {
-      std::set<int> S = *(L.begin());
-      L.erase(L.begin());
+      P2.clear();
+      for(std::vector<std::set<int> >::iterator B = P.begin();
+          B != P.end();
+          B++)
+      {
+        std::set<int> B1, B2;
+        // Split
+        for(std::set<int>::iterator b = B->begin();
+            b != B->end();
+            b++)
+        {
+          if(S.find(m_lTransiciones.find(Par(*b,iSimbolo))->second)!=S.end())
+            B1.insert(*b);
+          else
+            B2.insert(*b);
+        } // endfor b
 
-      for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)
-	{
-	  P2.clear();
-	  for(std::vector<std::set<int> >::iterator B = P.begin();
-	      B != P.end();
-	      B++)
-	    {
-	      std::set<int> B1, B2;
-	      // Split
-	      for(std::set<int>::iterator b = B->begin();
-		  b != B->end();
-		  b++)
-		{
-		  if(S.find(m_lTransiciones.find(Par(*b,iSimbolo))->second)!=S.end())
-		    B1.insert(*b);
-		  else
-		    B2.insert(*b);
-		} // endfor b
+        if(!B1.empty())
+          P2.push_back(B1);
+        if(!B2.empty())
+          P2.push_back(B2);
 
-	      if(!B1.empty())
-		P2.push_back(B1);
-	      if(!B2.empty())
-		P2.push_back(B2);
-
-	      if(!B1.empty() && !B2.empty())
-		{
-		  if(B1.size() < B2.size())
-		    L.insert(B1);
-		  else
-		    L.insert(B2);
-		}
-	    } // endfor B
-	  P=P2;
-	} // endfor iSimbolo
-    } //endwhile
+        if(!B1.empty() && !B2.empty())
+        {
+          if(B1.size() < B2.size())
+            L.insert(B1);
+          else
+            L.insert(B2);
+        }
+      } // endfor B
+      P=P2;
+    } // endfor iSimbolo
+  } //endwhile
 
   // En este punto la partición está refinada al máximo
 
-  std::vector<int> vIndices(m_cEstados);
-  int iPedo=0;
-  for(std::vector<std::set<int> >::const_iterator itCompartimento=P.begin();
-      itCompartimento != P.end();
-      itCompartimento++, iPedo++)
+  // Eliminamos estados no alcanzables
+  std::set<int> alcanzables = estadosAlcanzables(m_cSimbolos, m_lTransiciones, m_iEstadoInicial);
+
+  for(unsigned int iPos=0; iPos < P.size(); iPos++)
+  {
+    bool bHayQueBorrar = true;
+    for(std::set<int>::const_iterator itEstados = P[iPos].begin();
+        itEstados != P[iPos].end();
+        itEstados++)
     {
-      for(std::set<int>::const_iterator itElem = itCompartimento->begin();
-	  itElem != itCompartimento->end();
-	  itElem++)
-	{
-	  vIndices[*itElem]=iPedo;
-	}
+      if(alcanzables.find(*itEstados)!=alcanzables.end()) {
+        bHayQueBorrar=false;
+        break;
+      }
+    } // endfor itEstados
+
+    if(bHayQueBorrar) {
+      P.erase(P.begin()+iPos);
+      iPos--;
     }
 
-  /*
-   * Si la particion esta refinada al maximo
-   */
-  if(P.size() == static_cast<size_t>(m_cEstados))
-    return *this; // Devolvemos el AFD actual, porque es minimo
+  } // endfor itP
+
+
+  // Eliminamos estados no generativos
+  std::set<int> lEstadosFinales;
+  for(int iEstado=0; iEstado<m_cEstados; iEstado++)
+    if(m_vbEstadosFinales[iEstado])
+      lEstadosFinales.insert(iEstado);
+
+  std::set<int> generativos = estadosGenerativos(m_cSimbolos, m_lTransiciones, lEstadosFinales);
+
+  for(unsigned int iPos=0; iPos < P.size(); iPos++)
+  {
+    bool bHayQueBorrar = true;
+    for(std::set<int>::const_iterator itEstados = P[iPos].begin();
+        itEstados != P[iPos].end();
+        itEstados++)
+    {
+      if(generativos.find(*itEstados)!=generativos.end()) {
+        bHayQueBorrar=false;
+        break;
+      }
+    } // endfor itEstados
+
+    if(bHayQueBorrar) {
+      P.erase(P.begin()+iPos);
+      iPos--;
+    }
+
+  } // endfor itP
+
+  std::vector<int> vIndices(m_cEstados,-1);
+  int iAux=0;
+  for(std::vector<std::set<int> >::const_iterator itCompartimento=P.begin();
+      itCompartimento != P.end();
+      itCompartimento++, iAux++)
+  {
+    for(std::set<int>::const_iterator itElem = itCompartimento->begin();
+        itElem != itCompartimento->end();
+        itElem++)
+    {
+      vIndices[*itElem]=iAux;
+    }
+  }
 
   std::map<Par,int> lTransicionesMinimas;
   std::vector<bool> vbEstadosMinimosFinales(P.size());
@@ -320,10 +330,13 @@ AFD AFD::minimizar2() const {
       itCompartimento != P.end();
       itCompartimento++, iNuevoEstado++) {
     for(int iSimbolo = 0; iSimbolo < m_cSimbolos; iSimbolo++) {
-      lTransicionesMinimas[Par(iNuevoEstado,iSimbolo)] = vIndices[m_lTransiciones.find(Par(*(itCompartimento->begin()),iSimbolo))->second];
+      int iDestino = vIndices[m_lTransiciones.find(Par(*(itCompartimento->begin()),iSimbolo))->second];
+      if(iDestino != -1)
+        lTransicionesMinimas[Par(iNuevoEstado,iSimbolo)] = iDestino;
     }
     vbEstadosMinimosFinales[iNuevoEstado] = m_vbEstadosFinales[*(itCompartimento->begin())];
   }
+
 
   AFD afdMinimo(m_cSimbolos, static_cast<int>(P.size()), lTransicionesMinimas, vbEstadosMinimosFinales, vIndices[m_iEstadoInicial]);
 
@@ -383,47 +396,6 @@ std::set<std::set<int> > AFD::calculaEstadosDR() const {
   } // endwhile
 
   return estadosDR;
-}
-
-AFD::Particion::t_IDCompartimento AFD::Particion::obtenerCompartimento(const int iEstado) const {
-  for(Particion::const_iterator itCompartimento = this->begin(); itCompartimento != this->end(); itCompartimento++) {
-    t_ListaEstados lEstados=itCompartimento->second;
-    for(t_ListaEstados::const_iterator itEstados = lEstados.begin(); itEstados != lEstados.end(); itEstados++) {
-      if (*itEstados == iEstado)
-        return itCompartimento->first;
-    }
-  }
-
-  throw new std::exception();
-}
-
-int AFD::Particion::obtenerIndice(const int iEstado) const {
-  int iIndice = 0;
-  for(Particion::const_iterator itCompartimento = this->begin(); itCompartimento != this->end(); itCompartimento++, iIndice++) {
-    t_ListaEstados lEstados=itCompartimento->second;
-    for(t_ListaEstados::const_iterator itEstados = lEstados.begin(); itEstados != lEstados.end(); itEstados++) {
-      if (*itEstados == iEstado)
-        return iIndice;
-    }
-  }
-
-  throw new std::exception();
-}
-
-bool AFD::Particion::operator ==(const Particion &rhs) const {
-
-  if(this->getSize() != rhs.getSize())
-    return false;
-
-  Particion::const_iterator itParticion1(this->begin());
-  Particion::const_iterator itParticion2(rhs.begin());
-
-  for(; itParticion1!=this->end() && itParticion2!=rhs.end(); itParticion1++, itParticion2++) {
-    if(itParticion1->second != itParticion2->second)
-      return false;
-  }
-  
-  return true;
 }
 
 void AFD::setAlfabeto(std::list<char> lAlfabeto) {
@@ -602,7 +574,7 @@ AFN AFD::AutomataUniversal() {
   } // for it_i
   
   // INI DEBUGGING
-  for (std::map<std::set<int>, std::set<std::set<int> > >::iterator it = RelacionesDeInclusion.begin();
+  /*for (std::map<std::set<int>, std::set<std::set<int> > >::iterator it = RelacionesDeInclusion.begin();
        it != RelacionesDeInclusion.end();
        it++) {
     std::cout << "Estado: { ";
@@ -625,7 +597,7 @@ AFN AFD::AutomataUniversal() {
       std::cout <<  "} " ;
     }
     std::cout << std::endl;
-  }
+  }*/
   // FIN DEBUGGING
   
   /**
