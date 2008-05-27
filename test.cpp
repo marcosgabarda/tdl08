@@ -6,12 +6,13 @@
 #include <map>
 #include <set>
 #include <string>
+#include <ctime>
 
 using namespace std;
 
 int main() {
 
-  cout << endl << endl << "### PRUEBAS DE GIC" << endl << endl;
+  cout << endl << endl << "### PRUEBAS DE GIC ###" << endl << endl;
 
   std::set<char> noTerminales;
   std::set<char> terminales;
@@ -53,7 +54,7 @@ int main() {
   
   GIC GSimplificada = G->gramaticaSimplificada();
 
-  cout << endl << endl << "### PRUEBAS DE AFD" << endl << endl;
+  cout << endl << endl << "### PRUEBAS DE AFD ###" << endl << endl;
 
   int nEstados = 3;
   
@@ -81,6 +82,20 @@ int main() {
   cout << "Numero de estados del AU: " << AutU.getNumEstados() << endl;
   AutU.setName(string("foo"));
   AutU.salvar("automanta_universal.txt");
+
+cout << endl << endl << "### RENDIMIENTO DE AU ###" << endl << endl;
+
+for(int n = 3; n < 10; n++) {
+	AFD Ai(2,n);
+	AFD A = Ai.minimizar();
+	double t_ini = static_cast<double>(time(0));
+	double nrep = 400.0;
+	for (double r = 0.0; r < nrep; r+=1.0)
+		A.AutomataUniversal();
+	double t_fin = static_cast<double>(time(0));;
+	double t = (t_fin - t_ini) / nrep;
+	cout << n << "\t" << t << endl;
+}
 
   return 0;
   
