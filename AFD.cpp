@@ -706,20 +706,19 @@ AFN AFD::AutomataUniversal() {
   }  
 
   std::set<int> iEstadoInicial;
-  for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
-       it != EstadosFinales.end();
-       it++) {
-    bool esInicial = false;
-    for (std::set<int>::iterator it2 = it->begin();
-	 it2 != it->end();
+  iEstadoInicial.insert(m_iEstadoInicial);
+  std::set<std::set<int> > hijos =  RelacionesDeInclusion[iEstadoInicial];
+  while ( hijos.size() != 0) {
+    std::set<std::set<int> >::iterator itHijos = hijos.begin();
+    std::set<int> aux = *itHijos;
+    hijos.erase(itHijos);
+    iEstadoInicial.insert(TraduceEstados[aux]); 
+    std::set<std::set<int> > hijosTmp =  RelacionesDeInclusion[aux];   
+    for (std::set<std::set<int> >::iterator it2 = hijosTmp.begin();
+	 it2 != hijosTmp.end();
 	 it2++) {
-      if (*it2 == m_iEstadoInicial) {
-	esInicial = true;
-	break;
-      }
+      hijos.insert(*it2);
     }
-    if (esInicial)
-      iEstadoInicial.insert(TraduceEstados[*it]);
   }
 
   AFN AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFinUni, iEstadoInicial);

@@ -53,6 +53,10 @@ int main() {
   GIC *G = new GIC(noTerminales, terminales, simboloInicial, producciones);
   
   GIC GSimplificada = G->gramaticaSimplificada();
+  
+  cout << endl;
+  GSimplificada.formaNormalChomsky().mostrarGramatica();
+  cout << endl;
 
   cout << endl << endl << "### PRUEBAS DE AFD ###" << endl << endl;
 

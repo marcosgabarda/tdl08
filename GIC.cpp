@@ -1,5 +1,6 @@
 #include "GIC.h"
 #include <iostream>
+#include <sstream>
 
 GIC::GIC(std::set<char> noTerminales,
          std::set<char> terminales,
