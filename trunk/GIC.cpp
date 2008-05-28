@@ -578,78 +578,97 @@ GIC GIC::formaNormalChomsky() const {
   std::set<char> noTerminales(m_noTerminales);
 
   for(std::map<char,std::vector<std::string> >::iterator itProducciones = producciones.begin();
-      itProducciones != producciones.end();
-      itProducciones++)
+    itProducciones != producciones.end();
+    itProducciones++)
+  {
+    for(std::vector<std::string>::iterator itAlternativas = itProducciones->second.begin();
+      itAlternativas != itProducciones->second.end();
+      itAlternativas++)
     {
-      for(std::vector<std::string>::iterator itAlternativas = itProducciones->second.begin();
-	  itAlternativas != itProducciones->second.end();
-	  itAlternativas++)
-	{
-	  // Si la producción produce un único terminal
-	  // (sabemos que es terminal porque la gramática está simplificada)
-	  if(itAlternativas->length()== 1)
-	    continue; // No hacemos nada
+      // Si la produccin produce un nico terminal
+      // (sabemos que es terminal porque la gramtica est simplificada)
+      if(itAlternativas->length()== 1)
+        continue; // No hacemos nada
 
-	  for(unsigned int uiChar = 0;
-	      uiChar < itAlternativas->size();
-	      uiChar++)
-	    {
-	      if(m_terminales.find(itAlternativas->at(uiChar))!=m_terminales.end()) {
-		if(auxiliaresQueGeneranTerminales.find(itAlternativas->at(uiChar))==auxiliaresQueGeneranTerminales.end()) {
-		  char nuevoAuxiliar = nuevo_simbolo_auxiliar(noTerminales);
-		  auxiliaresQueGeneranTerminales[itAlternativas->at(uiChar)]=nuevoAuxiliar;
-		  noTerminales.insert(nuevoAuxiliar);
-		}
-		(*itAlternativas)[uiChar] = auxiliaresQueGeneranTerminales[itAlternativas->at(uiChar)];
-	      }
-	    } // endfor iSimbolo
-	} // endfor itAlternativas
-    } // endfor itProducciones
+      for(unsigned int uiChar = 0;
+          uiChar < itAlternativas->size();
+          uiChar++)
+      {
+        if(m_terminales.find(itAlternativas->at(uiChar))!=m_terminales.end()) {
+          if(auxiliaresQueGeneranTerminales.find(itAlternativas->at(uiChar))==auxiliaresQueGeneranTerminales.end()) {
+            char nuevoAuxiliar = nuevo_simbolo_auxiliar(noTerminales);
+            auxiliaresQueGeneranTerminales[itAlternativas->at(uiChar)]=nuevoAuxiliar;
+            noTerminales.insert(nuevoAuxiliar);
+          }
+          (*itAlternativas)[uiChar] = auxiliaresQueGeneranTerminales[itAlternativas->at(uiChar)];
+        }
+      } // endfor iSimbolo
+    } // endfor itAlternativas
+  } // endfor itProducciones
 
 
   for(std::map<char,std::vector<std::string> >::iterator itProducciones = producciones.begin();
-      itProducciones != producciones.end();
-      itProducciones++)
+    itProducciones != producciones.end();
+    itProducciones++)
+  {
+    for(std::vector<std::string>::iterator itAlternativas = itProducciones->second.begin();
+      itAlternativas != itProducciones->second.end();
+      itAlternativas++)
     {
-      for(std::vector<std::string>::iterator itAlternativas = itProducciones->second.begin();
-	  itAlternativas != itProducciones->second.end();
-	  itAlternativas++)
-	{
-	  // Si la producción produce un único terminal
-	  // (sabemos que es terminal porque la gramática está simplificada)
-	  if(itAlternativas->length()== 1)
-	    continue; // No hacemos nada
+      // Si la produccin produce un nico terminal
+      // (sabemos que es terminal porque la gramtica est simplificada)
+      if(itAlternativas->length()== 1)
+        continue; // No hacemos nada
 
-	  // Si la producción produce dos símbolos auxiliares
-	  if(itAlternativas->length()== 2)
-	    continue; // No hacemos nada
+      // Si la produccin produce dos smbolos auxiliares
+      if(itAlternativas->length()== 2)
+        continue; // No hacemos nada
 
-	  while(itAlternativas->length()>2) {
-	    if(auxiliaresQueGeneranAuxiliares.find(std::pair<char,char>(itAlternativas->c_str()[0],
-									itAlternativas->c_str()[1]))
-	       == auxiliaresQueGeneranAuxiliares.end())
-	      {
-		char nuevoAuxiliar = nuevo_simbolo_auxiliar(noTerminales);
-		auxiliaresQueGeneranAuxiliares[std::pair<char,char>(itAlternativas->at(0),itAlternativas->at(1))] = nuevoAuxiliar;
-		noTerminales.insert(nuevoAuxiliar);
-	      }
-	    itAlternativas->replace(0,2,1,auxiliaresQueGeneranAuxiliares[std::pair<char,char>(itAlternativas->at(0),itAlternativas->at(1))]);
-	  } // endwhile
-	} // endfor itAlternativas
-    } // endfor itProducciones
+      while(itAlternativas->length()>2) {
+        if(auxiliaresQueGeneranAuxiliares.find(std::pair<char,char>(itAlternativas->c_str()[0],
+                                                                    itAlternativas->c_str()[1]))
+            == auxiliaresQueGeneranAuxiliares.end())
+        {
+          char nuevoAuxiliar = nuevo_simbolo_auxiliar(noTerminales);
+          auxiliaresQueGeneranAuxiliares[std::pair<char,char>(itAlternativas->at(0),itAlternativas->at(1))] = nuevoAuxiliar;
+          noTerminales.insert(nuevoAuxiliar);
+        }
+        itAlternativas->replace(0,2,1,auxiliaresQueGeneranAuxiliares[std::pair<char,char>(itAlternativas->at(0),itAlternativas->at(1))]);
+      } // endwhile
+    } // endfor itAlternativas
+  } // endfor itProducciones
+
+  for(std::map<char,char>::const_iterator itNuevosAux = auxiliaresQueGeneranTerminales.begin();
+      itNuevosAux != auxiliaresQueGeneranTerminales.end();
+      itNuevosAux++)
+  {
+    std::ostringstream os;
+    os << itNuevosAux->first;
+    producciones[itNuevosAux->second].push_back(os.str());
+  } // endfor itNuevosAux
+
+  for(std::map<std::pair<char,char>,char>::const_iterator itNuevosAux = auxiliaresQueGeneranAuxiliares.begin();
+      itNuevosAux != auxiliaresQueGeneranAuxiliares.end();
+      itNuevosAux++)
+  {
+    std::ostringstream os;
+    os << itNuevosAux->first.first << itNuevosAux->first.second;
+    producciones[itNuevosAux->second].push_back(os.str());
+  } // endfor itNuevosAux
 
   return GIC(noTerminales, m_terminales, m_simboloInicial, producciones);
 }
 
-char GIC::nuevo_simbolo_auxiliar(const std::set<char> &noTerminales)
+char GIC::nuevo_simbolo_auxiliar(const std::set<char> &noTerminales) const
 {
   char nuevo;
-  for(nuevo='a'; noTerminales.find(nuevo)!=noTerminales.end(); nuevo++);
+  for(nuevo='a'; noTerminales.find(nuevo)!=noTerminales.end() ||
+                 m_terminales.find(nuevo)!=m_terminales.end(); nuevo++);
 
   return nuevo;
 }
 
-bool GIC::accepts(const std::string& strCadena) const {
+void GIC::accepts(const std::string& strCadena) const {
   const int n = strCadena.size();
   std::set<char>** V;
   V = new std::set<char>*[n];
@@ -706,7 +725,10 @@ bool GIC::accepts(const std::string& strCadena) const {
 
   // TODO: delete V
 
-  return (V[1][n].find(m_simboloInicial)!=V[1][n].end());
+  if(V[1][n].find(m_simboloInicial)!=V[1][n].end())
+    std::cout <<  "La gramatica ACEPTA la cadena " << strCadena << std::endl;
+  else
+    std::cout <<  "La gramatica RECHAZA la cadena " << strCadena << std::endl;
 }
 
 void GIC::mostrarGramatica() const {

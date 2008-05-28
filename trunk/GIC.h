@@ -21,7 +21,7 @@ private:
   char m_simboloInicial;
   std::map<char,std::vector<std::string> > m_producciones;
 
-  static char nuevo_simbolo_auxiliar(const std::set<char> &noTerminales);
+  char nuevo_simbolo_auxiliar(const std::set<char> &noTerminales) const;
 
   std::set<std::string> producciones_varios_auxiliares (char A) const;
   std::set<std::string> union_no_unitarias (char A, std::set<char> CNoTerm) const;
@@ -52,7 +52,7 @@ public:
 
   GIC formaNormalChomsky() const;
 
-  bool accepts(const std::string& strCadena) const;
+  void accepts(const std::string& strCadena) const;
 
   void mostrarGramatica() const;
 
