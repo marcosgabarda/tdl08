@@ -57,7 +57,7 @@ bool AFN::salvar(const std::string& strFileName) const {
   osSalida << "NumStates " << m_cEstados << std::endl;
   
   for(int iEstado=0; iEstado<m_cEstados; iEstado++)
-    osSalida << "State " << iEstado << " initial=" << (m_iEstadoInicial==iEstado) << " final=" << (m_vbEstadosFinales[iEstado] ? 1:0) << std::endl;
+    osSalida << "State " << iEstado << " initial=" << (m_iEstadoInicial.find(iEstado) != m_iEstadoInicial.end() ) << " final=" << (m_vbEstadosFinales[iEstado] ? 1:0) << std::endl;
   
 //  for(int iEstadoOrigen=0; iEstadoOrigen<m_cEstados; iEstadoOrigen++)
 //    for(int iSimbolo=0; iSimbolo<m_cSimbolos; iSimbolo++)

@@ -22,7 +22,7 @@ class AFN
   int m_cEstados; 
 
   // Estado inicial del automata.
-  int m_iEstadoInicial;
+  std::set<int> m_iEstadoInicial;
 	
   /* 
    * Vector de booleanos, donde final[e] == true indica que el estado e es final,
@@ -61,7 +61,7 @@ class AFN
    *  vbEstadosFinales="definición de estados finales"
    *  
    */
- AFN(int cSimbolos, int cEstados, std::set<Transicion> lTransiciones, std::vector<bool> vbEstadosFinales, int iEstadoInicial):
+ AFN(int cSimbolos, int cEstados, std::set<Transicion> lTransiciones, std::vector<bool> vbEstadosFinales, std::set<int> iEstadoInicial):
   m_cSimbolos(cSimbolos),
     m_cEstados(cEstados),
     m_vbEstadosFinales(vbEstadosFinales),
@@ -71,7 +71,7 @@ class AFN
     {
     }
 
-AFN(std::set<char> lSimbolos, int cEstados, std::set<cTransicion> lTransiciones, std::vector<bool> vbEstadosFinales, int iEstadoInicial):
+ AFN(std::set<char> lSimbolos, int cEstados, std::set<cTransicion> lTransiciones, std::vector<bool> vbEstadosFinales, std::set<int> iEstadoInicial):
   m_cSimbolos(static_cast<int>(lSimbolos.size())),
     m_cEstados(cEstados),
     m_vbEstadosFinales(vbEstadosFinales),

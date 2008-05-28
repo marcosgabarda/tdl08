@@ -83,7 +83,9 @@ int main() {
   AutU.setName(string("foo"));
   AutU.salvar("automanta_universal.txt");
 
-cout << endl << endl << "### RENDIMIENTO DE AU ###" << endl << endl;
+  /*cout << endl << endl << "### RENDIMIENTO DE AU ###" << endl << endl;
+
+
 
 for(int n = 3; n < 10; n++) {
 	AFD Ai(2,n);
@@ -95,7 +97,7 @@ for(int n = 3; n < 10; n++) {
 	double t_fin = static_cast<double>(time(0));;
 	double t = (t_fin - t_ini) / nrep;
 	cout << n << "\t" << t << endl;
-}
+	}*/
 
   return 0;
   
