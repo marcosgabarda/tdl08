@@ -685,10 +685,45 @@ AFN AFD::AutomataUniversal() {
   std::list<char> lAlfabeto(this->getAlfabeto());
   int cSimbolos =  static_cast<int>(getAlfabeto().size());
   int cEstados = static_cast<int>(EstadosFinales.size());
+
+  /**
+   * Los estados finales son los mismos del original, mas los estados
+   * interseccion si todos los integrantes son finales.
+   */
   std::vector<bool> vbEstadosFin(m_vbEstadosFinales);
-  int iEstadoInicial = m_iEstadoInicial;
-  
-  AFN AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFin, iEstadoInicial);
+  std::vector<bool> vbEstadosFinUni(static_cast<int>(EstadosFinales.size()));
+
+  for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
+       it != EstadosFinales.end();
+       it++) {
+    bool esFinal = true;
+    for (std::set<int>::iterator it2 = it->begin();
+	 it2 != it->end();
+	 it2++) {
+      esFinal = esFinal && vbEstadosFin[*it2];
+    }
+    vbEstadosFinUni[TraduceEstados[*it]] = esFinal;
+  }  
+
+  std::set<int> iEstadoInicial;
+  for (std::set<std::set<int> >::iterator it = EstadosFinales.begin();
+       it != EstadosFinales.end();
+       it++) {
+    bool esInicial = false;
+    for (std::set<int>::iterator it2 = it->begin();
+	 it2 != it->end();
+	 it2++) {
+      if (*it2 == m_iEstadoInicial) {
+	esInicial = true;
+	break;
+      }
+    }
+    if (esInicial)
+      iEstadoInicial.insert(TraduceEstados[*it]);
+  }
+
+  AFN AFDUniversal(cSimbolos, cEstados, lTransicionesFinales, vbEstadosFinUni, iEstadoInicial);
+
   AFDUniversal.setAlfabeto (lAlfabeto);
   
   //TODO: No recuedo si los finales eran los mismos que en el automata original, o si tambien se añaden
